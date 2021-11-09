@@ -86,7 +86,11 @@ function Pagelet(app,nameWithDot,data){
         parentNode.replaceChild(this.documentRootNode,includeTag);
     }
     this.showAsPage = function(){
-        $('#defaultdialog').modal('hide');
+        try{
+            $('#defaultdialog').modal('hide');
+        }catch(err){
+            
+        }
         var root = app.getRootNode();
         root.innerHTML="";
         if (this.documentRootNode==null){
@@ -312,16 +316,22 @@ function PageletJSApp(rootName){
         this.replaceAllIncludeTags();
     }
     this.hideDialog = function(){
-        $('#defaultdialog').modal('hide');
+        try{
+            $('#defaultdialog').modal('hide');
+        }catch(err){
+            
+        }
+        
         this.wasDialogOpenBeforeAlert = false;
     }
 }
 
 //var currentPageletServer = null;
 
-function PageletServer(servletName, appName){
+function PageletServer(servletName, appName, packageName){
     this.servletName = servletName;
     this.appName = appName;
+    this.packageName = packageName;
     //this.authenticationKey = null;
     //this.setAuthenticationKey = function(key){
         //this.authenticationKey = key;
@@ -349,6 +359,7 @@ function PageletServer(servletName, appName){
             dataType:'text',
             data : {
                 'application' : this.appName,
+                'package' : this.packageName,
                 'action' : 'listservermethods'
             },                
             async: false,

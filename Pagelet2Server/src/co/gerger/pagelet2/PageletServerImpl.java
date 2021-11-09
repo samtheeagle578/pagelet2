@@ -28,12 +28,13 @@ public class PageletServerImpl {
         String text = "";
         if (action!=null && action.equals("listservermethods")){
             String appName = request.getParameter("application");
+            String packageName = request.getParameter("package");
             if (appName==null){
                 throw new PageletServerException("Please specify an application name.");
             }
             Application app = this.applications.get(appName);
             if (app==null){
-                app = new ApplicationImpl(appName);
+                app = new ApplicationImpl(appName,packageName);
                 this.applications.put(appName, app);
             }
             text = app.getServerMethods();

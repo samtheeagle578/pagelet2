@@ -22,16 +22,18 @@ import org.json.JSONArray;
 import org.reflections.Reflections;
 
 public class ApplicationImpl implements Application {
-    String name;
+    private String name;
+    private String packageName;
     private HashMap<String,ClientController> controllers;
     private Interpreter interpreter;
     private String authenticatorController;
     private String authenticatorMethod;
     private static String errorMessage = "";
     
-    public ApplicationImpl(String name) {
+    public ApplicationImpl(String name, String packageName) {
         super();
         this.name = name;
+        this.packageName = packageName;
         this.controllers = new HashMap<>();
         this.interpreter = new Interpreter();
         try {
@@ -43,7 +45,7 @@ public class ApplicationImpl implements Application {
     
     public String getServerMethods(){
         log("Initializing controllers");
-        Reflections reflections = new Reflections(this.getName());
+        Reflections reflections = new Reflections(this.packageName);
         Set<Class<?>> controllers = 
             reflections.getTypesAnnotatedWith(Controller.class);
         log("SIZE ="+controllers.size());
@@ -133,9 +135,9 @@ public class ApplicationImpl implements Application {
         return this.interpreter;
     }
 
-    public String getName() {
+    /*public String getName() {
         return name;
-    }
+    }*/
     
     private void log(String message){
         System.out.println("ApplicationImpl: "+message);    
