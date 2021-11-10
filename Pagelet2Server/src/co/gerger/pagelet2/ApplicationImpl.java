@@ -17,6 +17,9 @@ import java.util.ArrayList;
 
 import java.util.Collection;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+
 import org.json.JSONArray;
 
 import org.reflections.Reflections;
@@ -27,8 +30,7 @@ public class ApplicationImpl implements Application {
     private HashMap<String,ClientController> controllers;
     private Interpreter interpreter;
     private String authenticatorController;
-    private String authenticatorMethod;
-    private static String errorMessage = "";
+    private String authenticatorMethod;   
     
     public ApplicationImpl(String name, String packageName) {
         super();
@@ -41,85 +43,98 @@ public class ApplicationImpl implements Application {
         } catch (EvalError e) {
             e.printStackTrace();
         }
+        String dummy = this.getServerMethods();
     }
     
     public String getServerMethods(){
-        log("Initializing controllers");
-        Reflections reflections = new Reflections(this.packageName);
-        Set<Class<?>> controllers = 
-            reflections.getTypesAnnotatedWith(Controller.class);
-        log("SIZE ="+controllers.size());
-        for (Class<?> clazz : controllers) {
-            try {
-                Controller controller=clazz.getAnnotation(Controller.class); 
-                log("CLAZZ NAME ="+clazz.getSimpleName());
-                String controllerName="";
-                if (controller.name().equals("default")){
-                    controllerName=clazz.getSimpleName().toLowerCase();    
-                }
-                else{
-                    controllerName=controller.name();
-                }
-
-                ClientController cc=new ClientControllerImpl(controllerName);
-                
-                Method[] methods=clazz.getDeclaredMethods();
-                int length=methods.length;
-                for (int i = 0; i < length; i++){
-                    Method method=methods[i]; 
-                    log("Method name = "+method.getName());
-                    
-                    boolean synchronous = false;
-                    boolean publicMethod = false;
-                    
-                    if (method.isAnnotationPresent(Callable.class)){
-                        //if (method.isAnnotationPresent(Synchronous.class)){
-                        synchronous = true;
-                        //}
-                        
-                        if (method.isAnnotationPresent(PublicMethod.class)){
-                            publicMethod = true;
-                        }
-                        
-                        Parameter[] parameters = method.getParameters();
-                        Class<?> returnType = method.getReturnType();
-                        //log("return type for method "+method.getName()+" is type="+returnType.getName());
-                        ArrayList<String> parameterNames = new ArrayList<>();
-                        String parameterName = null;
-                        for (Parameter parameter : parameters) {
-                            if(!parameter.isNamePresent()) {
-                                parameterName = "defaultParamName";
-                            }
-
-                            parameterName = parameter.getName();
-                            parameterNames.add(parameterName);
-                        }
-                        
-                        cc.addMethod(method.getName(),synchronous, publicMethod,parameterNames,returnType.getName());
-                        
-                    }
-                    this.controllers.put(controllerName, cc);
-                    log("ADDED CONTROLLER="+controllerName);
-                    if (method.isAnnotationPresent(Authenticator.class)){
-                        this.authenticatorController = controllerName;
-                        this.authenticatorMethod = method.getName();
-                    }
-                }    
-                
-                
-                getInterpreter().eval("import "+clazz.getName()+";"+" "+clazz.getSimpleName()+" "+controllerName+"=new "+clazz.getSimpleName()+"();");
-                
-                //getInterpreter().set("clazz", clazz);
-                //getInterpreter().eval("Object instance = clazz.newInstance();");
-                //Object instance = clazz.newInstance();
-                //log("BEAN NAME ="+controller.name()); 
-            } catch (EvalError e) {
-                //log("Error with bean initialization");
-                e.printStackTrace();
-                }
-
-
+        if (this.controllers.size()>0){
+            log("Controllers already initialized");
         }
+        else{
+            log("Initializing controllers");
+            Reflections reflections = new Reflections(this.packageName);
+            Set<Class<?>> controllers = 
+                reflections.getTypesAnnotatedWith(Controller.class);
+            log("SIZE ="+controllers.size());
+            for (Class<?> clazz : controllers) {
+                try {
+                    Controller controller=clazz.getAnnotation(Controller.class); 
+                    log("CLAZZ NAME ="+clazz.getSimpleName());
+                    String controllerName="";
+                    if (controller.name().equals("default")){
+                        controllerName=clazz.getSimpleName().toLowerCase();    
+                    }
+                    else{
+                        controllerName=controller.name();
+                    }
+
+                    ClientController cc=new ClientControllerImpl(controllerName);
+                    
+                    Method[] methods=clazz.getDeclaredMethods();
+                    int length=methods.length;
+                    for (int i = 0; i < length; i++){
+                        Method method=methods[i]; 
+                        log("Method name = "+method.getName());
+                        
+                        boolean synchronous = false;
+                        boolean publicMethod = false;
+                        boolean authorizer = false;
+                        
+                        if (method.isAnnotationPresent(Callable.class)){
+                            //if (method.isAnnotationPresent(Synchronous.class)){
+                            synchronous = true;
+                            //}
+                            
+                            if (method.isAnnotationPresent(PublicMethod.class)){
+                                publicMethod = true;
+                            }
+                            
+                            if (method.isAnnotationPresent(Authorizer.class)){
+                                authorizer = true;
+                            }
+                            
+                            Parameter[] parameters = method.getParameters();
+                            Class<?> returnType = method.getReturnType();
+                            //log("return type for method "+method.getName()+" is type="+returnType.getName());
+                            ArrayList<String> parameterNames = new ArrayList<>();
+                            String parameterName = null;
+                            for (Parameter parameter : parameters) {
+                                if(!parameter.isNamePresent()) {
+                                    parameterName = "defaultParamName";
+                                }
+
+                                parameterName = parameter.getName();
+                                parameterNames.add(parameterName);
+                            }
+                            
+                            cc.addMethod(method.getName(),synchronous, publicMethod,parameterNames,returnType.getName(),authorizer);
+                            
+                        }
+                        this.controllers.put(controllerName, cc);
+                        log("ADDED CONTROLLER="+controllerName);
+                        if (method.isAnnotationPresent(Authenticator.class)){
+                            this.authenticatorController = controllerName;
+                            this.authenticatorMethod = method.getName();
+                        }
+                        
+                    }    
+                    
+                    
+                    getInterpreter().eval("import "+clazz.getName()+";"+" "+clazz.getSimpleName()+" "+controllerName+"=new "+clazz.getSimpleName()+"();");
+                    
+                    //getInterpreter().set("clazz", clazz);
+                    //getInterpreter().eval("Object instance = clazz.newInstance();");
+                    //Object instance = clazz.newInstance();
+                    //log("BEAN NAME ="+controller.name()); 
+                } catch (EvalError e) {
+                    //log("Error with bean initialization");
+                    e.printStackTrace();
+                    }
+
+
+            }            
+        }
+
         
         String xml="<response>";
         Collection<ClientController> ccs= this.controllers.values();
@@ -313,13 +328,10 @@ public class ApplicationImpl implements Application {
         return output;
     }   
 
-    private void authenticate() throws PageletServerException {
+    private void authenticate(String accessToken) throws PageletServerException {
         if (this.authenticatorMethod!=null && this.authenticatorMethod.equals("")==false){
-            Interpreter i = this.getInterpreter();
-            String textToRun = this.authenticatorController+"."+this.authenticatorMethod + "();";
-            //log("authenticating:1:" + textToRun);
             try {
-                i.eval(textToRun);
+                String output = this.callInterpreter(this.authenticatorController, this.authenticatorMethod, accessToken);
             } catch (Exception e) {
                 throw new PageletServerException("This session is not authorized to execute this function");
             }    
@@ -327,32 +339,28 @@ public class ApplicationImpl implements Application {
     }
 
     @Override
-    public String execute(String controllerName,String methodName, String inputs) throws PageletServerException {
+    public String execute(String controllerName,String methodName, String inputs, Cookie accessTokenCookie, HttpServletResponse response) throws PageletServerException {
         ClientController controller = this.controllers.get(controllerName);
+        String  accessToken = null;
+        if (accessTokenCookie!=null){
+            accessToken = accessTokenCookie.getValue();
+        }
         if (controller==null){
             throw new PageletServerException("Cannot recognize "+controllerName+"."+methodName);
         }
         if (controller.isPublicMethod(methodName)==false){
-            authenticate();    
+            authenticate(accessToken);    
         }
         String output = this.callInterpreter(controllerName, methodName, inputs);
-        /*
-        result = ""; 
-        error="NO_ERROR"; 
-        try { 
-            server.doSignIn("admin","admin"); 
-        } catch (Exception e){ 
-            if (e.getMessage()!=null && e.getMessage().equals("")==false){ 
-                error = e.getMessage();
-            } else{ 
-                error = "An error without a message has occured.";
-            }
-        }*/
         log("execute:output="+output);
-
-        
-        
+        if (controller.isAuthorizer(methodName)){
+            accessTokenCookie = new Cookie("pagelet2accesstoken",output);
+            response.addCookie(accessTokenCookie);
+            return "";
+        }
         return output;
+        
+        
     }
     
 }

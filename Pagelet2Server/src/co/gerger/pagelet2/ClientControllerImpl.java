@@ -15,6 +15,7 @@ public class ClientControllerImpl implements ClientController {
     ArrayList<String> callableMethodNames;
     HashMap<String,ArrayList<String>> parameterNamesByMethod;
     ArrayList<String> publicMethodNames;
+    String authorizerMethodName;
     public ClientControllerImpl(String name) {
         super();
         this.doc=Util.getDocumentBuilder().newDocument();
@@ -26,7 +27,7 @@ public class ClientControllerImpl implements ClientController {
         this.parameterNamesByMethod = new HashMap<>();
     }
     
-    public void addMethod(String name, boolean synchronous, boolean publicMethod, ArrayList<String> parameterNames, String returnType){
+    public void addMethod(String name, boolean synchronous, boolean publicMethod, ArrayList<String> parameterNames, String returnType, boolean authorizer){
         Element methodElement=this.doc.createElement("method");
         methodElement.setAttribute("name", name);
         methodElement.setAttribute("returntype", returnType);
@@ -34,6 +35,10 @@ public class ClientControllerImpl implements ClientController {
         this.parameterNamesByMethod.put(name, parameterNames);
         if (synchronous){
             methodElement.setAttribute("synchronous", "true");
+        }
+        
+        if (authorizer){
+            this.authorizerMethodName = name;
         }
         
         if (publicMethod){
@@ -78,5 +83,15 @@ public class ClientControllerImpl implements ClientController {
     
     private void log(String message){
         System.out.println("ClientControllerImpl: "+message);    
+    }
+
+    @Override
+    public boolean isAuthorizer(String methodName) {
+        if (methodName!=null && methodName.equals(this.authorizerMethodName)){
+            return true;
+        }
+        else{
+            return false;    
+        }
     }
 }
