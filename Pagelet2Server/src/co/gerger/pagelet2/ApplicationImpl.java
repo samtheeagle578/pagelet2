@@ -344,6 +344,7 @@ public class ApplicationImpl implements Application {
         String  accessToken = null;
         if (accessTokenCookie!=null){
             accessToken = accessTokenCookie.getValue();
+            log("execute:accessToken="+accessToken);
         }
         if (controller==null){
             throw new PageletServerException("Cannot recognize "+controllerName+"."+methodName);
@@ -355,6 +356,7 @@ public class ApplicationImpl implements Application {
         log("execute:output="+output);
         if (controller.isAuthorizer(methodName)){
             accessTokenCookie = new Cookie("pagelet2accesstoken",output);
+            accessTokenCookie.setMaxAge(3600*24*3650);
             response.addCookie(accessTokenCookie);
             return "";
         }
