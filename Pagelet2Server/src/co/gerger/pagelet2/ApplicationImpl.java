@@ -146,7 +146,7 @@ public class ApplicationImpl implements Application {
         return xml;
     }
 
-    public Interpreter getInterpreter(){
+    private Interpreter getInterpreter(){
         return this.interpreter;
     }
 
