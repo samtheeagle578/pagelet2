@@ -38,7 +38,7 @@ public class PageletServerImpl {
         }
         Application app = applications.get(appName);
         if (app==null){
-            app = new ApplicationImpl(appName,packageName);
+            app = new ApplicationImpl(packageName);
             applications.putIfAbsent(appName, app);
             app = applications.get(appName);
         }        

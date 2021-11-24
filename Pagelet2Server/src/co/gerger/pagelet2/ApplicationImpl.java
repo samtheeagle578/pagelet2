@@ -25,17 +25,13 @@ import org.json.JSONArray;
 import org.reflections.Reflections;
 
 public class ApplicationImpl implements Application {
-    private String name;
-    private String packageName;
     private HashMap<String,ClientController> controllers;
     private Interpreter interpreter;
     private String authenticatorController;
     private String authenticatorMethod;   
     
-    public ApplicationImpl(String name, String packageName) {
+    public ApplicationImpl(String packageName) {
         super();
-        this.name = name;
-        this.packageName = packageName;
         this.controllers = new HashMap<>();
         this.interpreter = new Interpreter();
         try {
@@ -43,16 +39,27 @@ public class ApplicationImpl implements Application {
         } catch (EvalError e) {
             e.printStackTrace();
         }
-        String dummy = this.getServerMethods();
+        this.generateXMLForServerMethods(packageName);
     }
     
     public String getServerMethods(){
+        String xml="<response>";
+        Collection<ClientController> ccs= this.controllers.values();
+        for (ClientController c:ccs){
+            log("looping client controllers");
+            xml=xml+System.lineSeparator()+c.getText();    
+        }
+        xml = xml +System.lineSeparator()+"</response>";
+        return xml;        
+    }
+    
+    private void generateXMLForServerMethods(String packageName){
         if (this.controllers.size()>0){
             log("Controllers already initialized");
         }
         else{
             log("Initializing controllers");
-            Reflections reflections = new Reflections(this.packageName);
+            Reflections reflections = new Reflections(packageName);
             Set<Class<?>> controllers = 
                 reflections.getTypesAnnotatedWith(Controller.class);
             log("SIZE ="+controllers.size());
@@ -134,16 +141,6 @@ public class ApplicationImpl implements Application {
 
             }            
         }
-
-        
-        String xml="<response>";
-        Collection<ClientController> ccs= this.controllers.values();
-        for (ClientController c:ccs){
-            log("looping client controllers");
-            xml=xml+System.lineSeparator()+c.getText();    
-        }
-        xml = xml +System.lineSeparator()+"</response>";
-        return xml;
     }
 
     private Interpreter getInterpreter(){
