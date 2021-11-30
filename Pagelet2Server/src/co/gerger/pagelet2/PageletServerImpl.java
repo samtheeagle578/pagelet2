@@ -20,10 +20,13 @@ public class PageletServerImpl {
     
     public static String doRequest(HttpServletRequest request, HttpServletResponse response) throws PageletServerException {
         //this.session = request.getSession();
+        log("doRequest:start");
         Cookie[] cookies = request.getCookies();
         Cookie accessTokenCookie = null;
+        log("doRequest:about to loop cookies");
         if (cookies != null) {
             for (Cookie cookie : cookies) {
+                log("doRequest:cookie name="+cookie.getName());
                 if (cookie.getName().equals("pagelet2accesstoken")) {
                     accessTokenCookie = cookie; 
                 }
@@ -52,5 +55,9 @@ public class PageletServerImpl {
             text = app.execute(controllerName,methodName,inputs,accessTokenCookie,response);
         }
         return text;
+    }
+    
+    private static void log(String message){
+        System.out.println("PageletServerImpl: "+message);    
     }
 }

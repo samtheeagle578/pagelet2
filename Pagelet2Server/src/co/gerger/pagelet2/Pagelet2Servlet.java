@@ -24,14 +24,7 @@ public class Pagelet2Servlet extends HttpServlet {
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setContentType(CONTENT_TYPE);
-        PrintWriter out = response.getWriter();
-        out.println("<html>");
-        out.println("<head><title>GitoraForDataServlet</title></head>");
-        out.println("<body>");
-        out.println("<p>The servlet has received a GET. This is the reply.</p>");
-        out.println("</body></html>");
-        out.close();
+        doPost(request,response);
     }
 
         public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

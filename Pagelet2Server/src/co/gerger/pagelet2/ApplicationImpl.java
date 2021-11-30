@@ -349,6 +349,7 @@ public class ApplicationImpl implements Application {
         if (controller.isPublicMethod(methodName)==false){
             authenticate(accessToken);    
         }
+        log("execute:controllerName="+controllerName+", methodName="+methodName+", inputs="+inputs);
         String output = this.callInterpreter(controllerName, methodName, inputs);
         log("execute:output="+output);
         if (controller.isAuthorizer(methodName)){
