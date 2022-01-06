@@ -28,12 +28,9 @@ import org.reflections.Reflections;
 
 public class ApplicationImpl {
     private static ConcurrentHashMap<String,ClientController> controllers = new ConcurrentHashMap<>();
+    private static boolean clientControllersProcessed = false;
     private static String authenticatorController;
-    private static String authenticatorMethod;   
-    
-    static{
-        
-    }
+    private static String authenticatorMethod;
     
     public ApplicationImpl(String packageName) {
         super();
@@ -51,11 +48,12 @@ public class ApplicationImpl {
         return xml;        
     }
     
-    private void generateXMLForServerMethods(String packageName){
-        if (ApplicationImpl.controllers.size()>0){
+    public static void processServerMethods(String packageName){
+        if (ApplicationImpl.clientControllersProcessed){
             log("Controllers already initialized");
         }
         else{
+            ApplicationImpl.clientControllersProcessed = true;
             log("Initializing controllers");
             Reflections reflections = new Reflections(packageName);
             Set<Class<?>> controllers = 
@@ -119,7 +117,7 @@ public class ApplicationImpl {
                             cc.addMethod(method.getName(),synchronous, publicMethod, parameterNames,returnType.getName(),authorizer, needsCredentials);
                             
                         }
-                        ApplicationImpl.controllers.put(controllerName, cc);
+                        ApplicationImpl.controllers.putIfAbsent(controllerName, cc);
                         log("ADDED CONTROLLER="+controllerName);
                         if (method.isAnnotationPresent(Authenticator.class)){
                             authenticatorController = controllerName;
@@ -347,7 +345,7 @@ public class ApplicationImpl {
     }
 
     
-    public static String execute(String appName, String controllerName,String methodName, String inputs, String accessToken, HttpServletResponse response) throws PageletServerException {
+    public static String execute(String controllerName,String methodName, String inputs, String accessToken, HttpServletResponse response) throws PageletServerException {
         ClientController controller = controllers.get(controllerName);
         if (controller==null){
             throw new PageletServerException("Cannot recognize "+controllerName+"."+methodName);

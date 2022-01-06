@@ -37,12 +37,8 @@ public class PageletServerImpl {
         String accessToken = getAuthorizationToken(request);
         String action = request.getParameter("action");
         String text = "";
-        String appName = request.getParameter("application");
         String packageName = request.getParameter("package");
-        if (appName==null){
-            throw new PageletServerException("Please specify an application name.");
-        }
-                
+        ApplicationImpl.processServerMethods(packageName);        
         if (action!=null && action.equals("listservermethods")){
             text = ApplicationImpl.getServerMethods();
         }
@@ -50,7 +46,7 @@ public class PageletServerImpl {
             String controllerName = request.getParameter("controller");
             String methodName = request.getParameter("method");
             String inputs = request.getParameter("inputs");
-            text = ApplicationImpl.execute(appName,controllerName,methodName,inputs,accessToken,response);
+            text = ApplicationImpl.execute(controllerName,methodName,inputs,accessToken,response);
         }
         return text;
     }
