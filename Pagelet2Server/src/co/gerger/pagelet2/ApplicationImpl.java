@@ -159,10 +159,10 @@ public class ApplicationImpl {
         System.out.println("ApplicationImpl: "+message);    
     }
 
-    private static void setParam(int nthParam, String value) throws PageletServerException {
+    private static void setParam(int nthParam, String value, Interpreter interpreter) throws PageletServerException {
         try {
             log("Setting param"+nthParam+" to "+value);
-            ApplicationImpl.getInterpreter().set("param"+nthParam, value);
+            interpreter.set("param"+nthParam, value);
         } catch (EvalError e) {
             log("ScriptStacktrace="+e.getScriptStackTrace());
             //e.printStackTrace();
@@ -170,7 +170,7 @@ public class ApplicationImpl {
         }
     }
     
-    private static String addParams2(String textToRun,String inputs) throws PageletServerException {
+    private static String addParams2(String textToRun,String inputs, Interpreter interpreter) throws PageletServerException {
         if (inputs!=null && inputs.equals("")==false){
             String[] params = inputs.split("~~~");
             if (params!=null && params.length>0){
@@ -179,22 +179,22 @@ public class ApplicationImpl {
                     //params[i] = params[i].replace("\"", "\\\"");
                     if (i==0){
                         if (params[i].equals(Constant.NULL_VALUE)){
-                            setParam(i,"");
+                            setParam(i,"",interpreter);
                             textToRun = textToRun + "param"+i;
                         }
                         else{
-                            setParam(i,params[i]);
+                            setParam(i,params[i],interpreter);
                             textToRun = textToRun + "param"+i;    
                         }
                         
                     }
                     else{
                         if (params[i].equals(Constant.NULL_VALUE)){
-                            setParam(i,"");
+                            setParam(i,"",interpreter);
                             textToRun = textToRun + ",param"+i;        
                         }
                         else{
-                            setParam(i,params[i]);
+                            setParam(i,params[i],interpreter);
                             textToRun = textToRun + ",param"+i;        
                         }
                         
@@ -261,7 +261,7 @@ public class ApplicationImpl {
         if (Constant.VOID.equals(returnType)){
             String textToRun=getBeginning()+controller.getSimpleClassName()+"."+methodName+"(";
             log("callInterpreter:1:inputs="+inputs);
-            textToRun = addParams2(textToRun,inputs);
+            textToRun = addParams2(textToRun,inputs,in);
             textToRun = addExceptionHandling(textToRun);
             output = "void";
             try {
@@ -279,7 +279,7 @@ public class ApplicationImpl {
         }
         else if (Constant.JSONArray.equals(returnType)){
             String textToRun=getJSONBeginning()+"result = "+controller.getSimpleClassName()+"."+methodName+"(";
-            textToRun = addParams2(textToRun,inputs);
+            textToRun = addParams2(textToRun,inputs,in);
             textToRun = addExceptionHandling(textToRun);
             JSONArray jsonArray = null;
             try {
@@ -305,7 +305,7 @@ public class ApplicationImpl {
         else{
             log("callInterpreter:2:inputs="+inputs);
             String textToRun=getBeginning()+"resultString = "+controller.getSimpleClassName()+"."+methodName+"(";
-            textToRun = addParams2(textToRun,inputs);
+            textToRun = addParams2(textToRun,inputs,in);
             textToRun = addExceptionHandling(textToRun);
             try {
                 log("Running:code="+textToRun);
