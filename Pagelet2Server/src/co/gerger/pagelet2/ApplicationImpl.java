@@ -136,6 +136,7 @@ public class ApplicationImpl {
     }
 
     private static Interpreter getInterpreter(){
+        log("NEW INTERPRETER METHOD");
         Interpreter interpreter =  new Interpreter();
         try {
             interpreter.eval("import org.json.JSONArray; JSONArray testArray=new JSONArray();");
