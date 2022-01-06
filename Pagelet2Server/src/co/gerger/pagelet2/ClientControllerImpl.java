@@ -18,10 +18,12 @@ public class ClientControllerImpl implements ClientController {
     ArrayList<String> methodsThatNeedCredentials;
     String authorizerMethodName;
     String className;
+    String simpleClassName;
     
-    public ClientControllerImpl(String name, String className) {
+    public ClientControllerImpl(String name, String className, String simpleClassName) {
         super();
         this.className = className;
+        this.simpleClassName = simpleClassName;
         this.doc=Util.getDocumentBuilder().newDocument();
         Element element=this.doc.createElement("controller");
         element.setAttribute("name",name);
@@ -117,5 +119,10 @@ public class ClientControllerImpl implements ClientController {
     @Override
     public String getClassName() {
         return this.className;
+    }
+
+    @Override
+    public String getSimpleClassName() {
+        return this.simpleClassName;
     }
 }

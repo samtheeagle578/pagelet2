@@ -7,6 +7,7 @@ public interface ClientController {
     String getText();
     String getMethodReturnType(String methodName);
     String getClassName();
+    String getSimpleClassName();
     boolean isPublicMethod(String methodName);
     boolean isAuthorizer(String methodName);
     boolean needsCredentials(String methodName);

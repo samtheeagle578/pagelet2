@@ -71,7 +71,7 @@ public class ApplicationImpl {
                         controllerName=controller.name();
                     }
 
-                    ClientController cc=new ClientControllerImpl(controllerName,clazz.getName());
+                    ClientController cc=new ClientControllerImpl(controllerName,clazz.getName(), clazz.getSimpleName());
                     
                     Method[] methods=clazz.getDeclaredMethods();
                     int length=methods.length;
@@ -257,9 +257,9 @@ public class ApplicationImpl {
         ClientController controller = ApplicationImpl.controllers.get(controllerName);
         String returnType = controller.getMethodReturnType(methodName);
         String output = null;
-        log("callInterpreter:returnType="+returnType);
+        log("callInterpreter:simpleClassName="+controller.getSimpleClassName());
         if (Constant.VOID.equals(returnType)){
-            String textToRun=getBeginning()+controllerName+"."+methodName+"(";
+            String textToRun=getBeginning()+controller.getSimpleClassName()+"."+methodName+"(";
             log("callInterpreter:1:inputs="+inputs);
             textToRun = addParams2(textToRun,inputs);
             textToRun = addExceptionHandling(textToRun);
@@ -278,7 +278,7 @@ public class ApplicationImpl {
             }
         }
         else if (Constant.JSONArray.equals(returnType)){
-            String textToRun=getJSONBeginning()+"result = "+controllerName+"."+methodName+"(";
+            String textToRun=getJSONBeginning()+"result = "+controller.getSimpleClassName()+"."+methodName+"(";
             textToRun = addParams2(textToRun,inputs);
             textToRun = addExceptionHandling(textToRun);
             JSONArray jsonArray = null;
@@ -304,7 +304,7 @@ public class ApplicationImpl {
         }
         else{
             log("callInterpreter:2:inputs="+inputs);
-            String textToRun=getBeginning()+"resultString = "+controllerName+"."+methodName+"(";
+            String textToRun=getBeginning()+"resultString = "+controller.getSimpleClassName()+"."+methodName+"(";
             textToRun = addParams2(textToRun,inputs);
             textToRun = addExceptionHandling(textToRun);
             try {
