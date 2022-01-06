@@ -328,7 +328,12 @@ public class ApplicationImpl implements Application {
     private void authenticate(String accessToken) throws PageletServerException {
         if (this.authenticatorMethod!=null && this.authenticatorMethod.equals("")==false){
             try {
-                String output = this.callInterpreter(this.authenticatorController, this.authenticatorMethod, accessToken);
+                if (accessToken!=null && "".equals(accessToken)==false){
+                    String output = this.callInterpreter(this.authenticatorController, this.authenticatorMethod, accessToken);    
+                }
+                else{
+                    throw new Exception();
+                }
             } catch (Exception e) {
                 throw new PageletServerException("This session is not authorized to execute this function");
             }    
@@ -336,13 +341,8 @@ public class ApplicationImpl implements Application {
     }
 
     @Override
-    public String execute(String controllerName,String methodName, String inputs, Cookie accessTokenCookie, HttpServletResponse response) throws PageletServerException {
+    public String execute(String controllerName,String methodName, String inputs, String accessToken, HttpServletResponse response) throws PageletServerException {
         ClientController controller = this.controllers.get(controllerName);
-        String  accessToken = null;
-        if (accessTokenCookie!=null){
-            accessToken = accessTokenCookie.getValue();
-            log("execute:accessToken="+accessToken);
-        }
         if (controller==null){
             throw new PageletServerException("Cannot recognize "+controllerName+"."+methodName);
         }
@@ -353,7 +353,7 @@ public class ApplicationImpl implements Application {
         String output = this.callInterpreter(controllerName, methodName, inputs);
         log("execute:output="+output);
         if (controller.isAuthorizer(methodName)){
-            accessTokenCookie = new Cookie("pagelet2accesstoken",output);
+            Cookie accessTokenCookie = new Cookie("pagelet2accesstoken",output);
             accessTokenCookie.setMaxAge(3600*24*3650);
             response.addCookie(accessTokenCookie);
             return "";

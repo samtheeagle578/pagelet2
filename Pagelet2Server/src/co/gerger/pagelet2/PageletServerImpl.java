@@ -18,20 +18,27 @@ public class PageletServerImpl {
         super();
     }
     
-    public static String doRequest(HttpServletRequest request, HttpServletResponse response) throws PageletServerException {
-        //this.session = request.getSession();
-        log("doRequest:start");
+    public static String getAuthorizationToken(HttpServletRequest request){
         Cookie[] cookies = request.getCookies();
-        Cookie accessTokenCookie = null;
+        String accessToken = null;
         log("doRequest:about to loop cookies");
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 log("doRequest:cookie name="+cookie.getName());
                 if (cookie.getName().equals("pagelet2accesstoken")) {
-                    accessTokenCookie = cookie; 
+                    accessToken = cookie.getValue();
                 }
             }
-        }
+        }  
+        return accessToken;
+    }
+    
+    public static String doRequest(HttpServletRequest request, HttpServletResponse response) throws PageletServerException {
+        //this.session = request.getSession();
+        log("doRequest:start");
+        Cookie[] cookies = request.getCookies();
+        Cookie accessTokenCookie = null;
+        String accessToken = getAuthorizationToken(request);
         String action = request.getParameter("action");
         String text = "";
         String appName = request.getParameter("application");
@@ -52,7 +59,7 @@ public class PageletServerImpl {
             String controllerName = request.getParameter("controller");
             String methodName = request.getParameter("method");
             String inputs = request.getParameter("inputs");
-            text = app.execute(controllerName,methodName,inputs,accessTokenCookie,response);
+            text = app.execute(controllerName,methodName,inputs,accessToken,response);
         }
         return text;
     }
