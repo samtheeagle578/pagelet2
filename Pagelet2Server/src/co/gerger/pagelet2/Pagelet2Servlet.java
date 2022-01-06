@@ -27,25 +27,25 @@ public class Pagelet2Servlet extends HttpServlet {
         doPost(request,response);
     }
 
-        public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-            //doLog("gitblit="+);
-            //counter = counter + 1;
-            PrintWriter out = response.getWriter();
-            String event=request.getParameter("action");
-            doLog("ACTION="+event);
-            String result= "";
-            doLog("step 1");
-            try {
-                result = PageletServerImpl.doRequest(request,response);
-            } catch (PageletServerException e) {
-                out.print("ServerException:");
-                out.print(e.getMessage());
-            }
-            doLog("step 4");
-            response.setContentType(CONTENT_TYPE);
-            out.print(result);                        
-            out.close();
-            doLog("step 5");
-
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //doLog("gitblit="+);
+        //counter = counter + 1;
+        PrintWriter out = response.getWriter();
+        String event=request.getParameter("action");
+        doLog("ACTION="+event);
+        String result= "";
+        doLog("step 1");
+        try {
+            result = PageletServerImpl.doRequest(request,response);
+        } catch (PageletServerException e) {
+            out.print("ServerException:");
+            out.print(e.getMessage());
         }
+        doLog("step 4");
+        response.setContentType(CONTENT_TYPE);
+        out.print(result);                        
+        out.close();
+        doLog("step 5");
+
+    }
 }

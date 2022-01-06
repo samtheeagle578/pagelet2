@@ -17,6 +17,8 @@ import java.util.ArrayList;
 
 import java.util.Collection;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
@@ -24,27 +26,23 @@ import org.json.JSONArray;
 
 import org.reflections.Reflections;
 
-public class ApplicationImpl implements Application {
-    private HashMap<String,ClientController> controllers;
-    private Interpreter interpreter;
-    private String authenticatorController;
-    private String authenticatorMethod;   
+public class ApplicationImpl {
+    private static ConcurrentHashMap<String,ClientController> controllers = new ConcurrentHashMap<>();
+    private static String authenticatorController;
+    private static String authenticatorMethod;   
+    
+    static{
+        
+    }
     
     public ApplicationImpl(String packageName) {
         super();
-        this.controllers = new HashMap<>();
-        this.interpreter = new Interpreter();
-        try {
-            getInterpreter().eval("import org.json.JSONArray; JSONArray testArray=new JSONArray();");
-        } catch (EvalError e) {
-            e.printStackTrace();
-        }
-        this.generateXMLForServerMethods(packageName);
+        //this.generateXMLForServerMethods(packageName);
     }
     
-    public String getServerMethods(){
+    public static String getServerMethods(){
         String xml="<response>";
-        Collection<ClientController> ccs= this.controllers.values();
+        Collection<ClientController> ccs= controllers.values();
         for (ClientController c:ccs){
             log("looping client controllers");
             xml=xml+System.lineSeparator()+c.getText();    
@@ -54,7 +52,7 @@ public class ApplicationImpl implements Application {
     }
     
     private void generateXMLForServerMethods(String packageName){
-        if (this.controllers.size()>0){
+        if (ApplicationImpl.controllers.size()>0){
             log("Controllers already initialized");
         }
         else{
@@ -75,7 +73,7 @@ public class ApplicationImpl implements Application {
                         controllerName=controller.name();
                     }
 
-                    ClientController cc=new ClientControllerImpl(controllerName);
+                    ClientController cc=new ClientControllerImpl(controllerName,clazz.getName());
                     
                     Method[] methods=clazz.getDeclaredMethods();
                     int length=methods.length;
@@ -86,7 +84,7 @@ public class ApplicationImpl implements Application {
                         boolean synchronous = false;
                         boolean publicMethod = false;
                         boolean authorizer = false;
-                        
+                        boolean needsCredentials = false;
                         if (method.isAnnotationPresent(Callable.class)){
                             //if (method.isAnnotationPresent(Synchronous.class)){
                             synchronous = true;
@@ -94,6 +92,10 @@ public class ApplicationImpl implements Application {
                             
                             if (method.isAnnotationPresent(PublicMethod.class)){
                                 publicMethod = true;
+                            }
+                            
+                            if (method.isAnnotationPresent(NeedsCredentials.class)){
+                                needsCredentials = true;
                             }
                             
                             if (method.isAnnotationPresent(Authorizer.class)){
@@ -114,26 +116,18 @@ public class ApplicationImpl implements Application {
                                 parameterNames.add(parameterName);
                             }
                             
-                            cc.addMethod(method.getName(),synchronous, publicMethod,parameterNames,returnType.getName(),authorizer);
+                            cc.addMethod(method.getName(),synchronous, publicMethod, parameterNames,returnType.getName(),authorizer, needsCredentials);
                             
                         }
-                        this.controllers.put(controllerName, cc);
+                        ApplicationImpl.controllers.put(controllerName, cc);
                         log("ADDED CONTROLLER="+controllerName);
                         if (method.isAnnotationPresent(Authenticator.class)){
-                            this.authenticatorController = controllerName;
-                            this.authenticatorMethod = method.getName();
+                            authenticatorController = controllerName;
+                            authenticatorMethod = method.getName();
                         }
                         
                     }    
-                    
-                    
-                    getInterpreter().eval("import "+clazz.getName()+";"+" "+clazz.getSimpleName()+" "+controllerName+"=new "+clazz.getSimpleName()+"();");
-                    
-                    //getInterpreter().set("clazz", clazz);
-                    //getInterpreter().eval("Object instance = clazz.newInstance();");
-                    //Object instance = clazz.newInstance();
-                    //log("BEAN NAME ="+controller.name()); 
-                } catch (EvalError e) {
+                } catch (Exception e) {
                     //log("Error with bean initialization");
                     e.printStackTrace();
                     }
@@ -143,22 +137,34 @@ public class ApplicationImpl implements Application {
         }
     }
 
-    private Interpreter getInterpreter(){
-        return this.interpreter;
+    private static Interpreter getInterpreter(){
+        Interpreter interpreter =  new Interpreter();
+        try {
+            interpreter.eval("import org.json.JSONArray; JSONArray testArray=new JSONArray();");
+            Collection<ClientController> clientControllers = ApplicationImpl.controllers.values();
+            for(ClientController cc: clientControllers){
+                //interpreter.eval("import "+clazz.getName()+";"+" "+clazz.getSimpleName()+" "+controllerName+"=new "+clazz.getSimpleName()+"();");    
+                interpreter.eval("import "+cc.getClassName()+"; int xx=1;");    
+            }
+            
+        } catch (EvalError e) {
+            e.printStackTrace();
+        }
+        return interpreter;
     }
 
     /*public String getName() {
         return name;
     }*/
     
-    private void log(String message){
+    private static void log(String message){
         System.out.println("ApplicationImpl: "+message);    
     }
 
-    private void setParam(int nthParam, String value) throws PageletServerException {
+    private static void setParam(int nthParam, String value) throws PageletServerException {
         try {
             log("Setting param"+nthParam+" to "+value);
-            this.getInterpreter().set("param"+nthParam, value);
+            ApplicationImpl.getInterpreter().set("param"+nthParam, value);
         } catch (EvalError e) {
             log("ScriptStacktrace="+e.getScriptStackTrace());
             //e.printStackTrace();
@@ -166,7 +172,7 @@ public class ApplicationImpl implements Application {
         }
     }
     
-    private String addParams2(String textToRun,String inputs) throws PageletServerException {
+    private static String addParams2(String textToRun,String inputs) throws PageletServerException {
         if (inputs!=null && inputs.equals("")==false){
             String[] params = inputs.split("~~~");
             if (params!=null && params.length>0){
@@ -235,22 +241,22 @@ public class ApplicationImpl implements Application {
         return textToRun;
     }
     
-    private String addExceptionHandling(String textToRun){
+    private static String addExceptionHandling(String textToRun){
         return textToRun+" } catch (Exception e){e.printStackTrace(); if (e.getMessage()!=null && e.getMessage().equals(\"\")==false){ error = e.getMessage();} else{ error = \"An error without a message has occured.\";}}";
     }
 
 
-    private String getBeginning(){
+    private static String getBeginning(){
         return " resultString = \"\"; error=\"NO_ERROR\"; try { ";
     }
     
-    private String getJSONBeginning(){
+    private static String getJSONBeginning(){
         return " JSONArray result = null; error=\"NO_ERROR\"; try { ";
     }
     
-    private String callInterpreter(String controllerName, String methodName, String inputs) throws PageletServerException {
-        Interpreter in = this.getInterpreter();
-        ClientController controller = this.controllers.get(controllerName);
+    private static String callInterpreter(String controllerName, String methodName, String inputs) throws PageletServerException {
+        Interpreter in = ApplicationImpl.getInterpreter();
+        ClientController controller = ApplicationImpl.controllers.get(controllerName);
         String returnType = controller.getMethodReturnType(methodName);
         String output = null;
         log("callInterpreter:returnType="+returnType);
@@ -325,11 +331,11 @@ public class ApplicationImpl implements Application {
         return output;
     }   
 
-    private void authenticate(String accessToken) throws PageletServerException {
-        if (this.authenticatorMethod!=null && this.authenticatorMethod.equals("")==false){
+    private static void authenticate(String accessToken) throws PageletServerException {
+        if (ApplicationImpl.authenticatorMethod!=null && ApplicationImpl.authenticatorMethod.equals("")==false){
             try {
                 if (accessToken!=null && "".equals(accessToken)==false){
-                    String output = this.callInterpreter(this.authenticatorController, this.authenticatorMethod, accessToken);    
+                    String output = ApplicationImpl.callInterpreter(ApplicationImpl.authenticatorController, ApplicationImpl.authenticatorMethod, accessToken);    
                 }
                 else{
                     throw new Exception();
@@ -340,9 +346,9 @@ public class ApplicationImpl implements Application {
         }        
     }
 
-    @Override
-    public String execute(String controllerName,String methodName, String inputs, String accessToken, HttpServletResponse response) throws PageletServerException {
-        ClientController controller = this.controllers.get(controllerName);
+    
+    public static String execute(String appName, String controllerName,String methodName, String inputs, String accessToken, HttpServletResponse response) throws PageletServerException {
+        ClientController controller = controllers.get(controllerName);
         if (controller==null){
             throw new PageletServerException("Cannot recognize "+controllerName+"."+methodName);
         }
@@ -350,7 +356,17 @@ public class ApplicationImpl implements Application {
             authenticate(accessToken);    
         }
         log("execute:controllerName="+controllerName+", methodName="+methodName+", inputs="+inputs);
-        String output = this.callInterpreter(controllerName, methodName, inputs);
+    
+        if (controller.needsCredentials(methodName)){
+            if (inputs!=null && inputs.equals("")==false){
+                inputs = inputs + "~~~" + accessToken;    
+            }
+            else{
+                inputs = accessToken;
+            }
+        }
+    
+        String output = ApplicationImpl.callInterpreter(controllerName, methodName, inputs);
         log("execute:output="+output);
         if (controller.isAuthorizer(methodName)){
             Cookie accessTokenCookie = new Cookie("pagelet2accesstoken",output);

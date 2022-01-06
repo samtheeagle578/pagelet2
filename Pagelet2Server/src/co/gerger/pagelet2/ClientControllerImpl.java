@@ -15,9 +15,13 @@ public class ClientControllerImpl implements ClientController {
     ArrayList<String> callableMethodNames;
     HashMap<String,ArrayList<String>> parameterNamesByMethod;
     ArrayList<String> publicMethodNames;
+    ArrayList<String> methodsThatNeedCredentials;
     String authorizerMethodName;
-    public ClientControllerImpl(String name) {
+    String className;
+    
+    public ClientControllerImpl(String name, String className) {
         super();
+        this.className = className;
         this.doc=Util.getDocumentBuilder().newDocument();
         Element element=this.doc.createElement("controller");
         element.setAttribute("name",name);
@@ -25,9 +29,10 @@ public class ClientControllerImpl implements ClientController {
         this.callableMethodNames = new ArrayList<>();
         this.publicMethodNames = new ArrayList<>();
         this.parameterNamesByMethod = new HashMap<>();
+        this.methodsThatNeedCredentials = new ArrayList<String>();
     }
     
-    public void addMethod(String name, boolean synchronous, boolean publicMethod, ArrayList<String> parameterNames, String returnType, boolean authorizer){
+    public void addMethod(String name, boolean synchronous, boolean publicMethod, ArrayList<String> parameterNames, String returnType, boolean authorizer, boolean needsCredentials){
         Element methodElement=this.doc.createElement("method");
         methodElement.setAttribute("name", name);
         methodElement.setAttribute("returntype", returnType);
@@ -44,6 +49,11 @@ public class ClientControllerImpl implements ClientController {
         if (publicMethod){
             this.publicMethodNames.add(name);
         }
+        
+        if (needsCredentials){
+            this.methodsThatNeedCredentials.add(name);
+        }
+        
         if (parameterNames.size()>0){
             for(String param : parameterNames){
                 Element paramE = this.doc.createElement("parameter");
@@ -81,6 +91,15 @@ public class ClientControllerImpl implements ClientController {
         }
     }
     
+    public boolean needsCredentials(String methodName){
+        if (this.methodsThatNeedCredentials.contains(methodName)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    
     private void log(String message){
         System.out.println("ClientControllerImpl: "+message);    
     }
@@ -93,5 +112,10 @@ public class ClientControllerImpl implements ClientController {
         else{
             return false;    
         }
+    }
+
+    @Override
+    public String getClassName() {
+        return this.className;
     }
 }
