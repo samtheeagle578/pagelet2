@@ -11,6 +11,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import bsh.Interpreter;
 
+import freemarker.core.ParseException;
+
+import java.io.File;
+import java.io.IOException;
+
 import java.lang.reflect.Parameter;
 
 import java.util.ArrayList;
@@ -26,11 +31,20 @@ import org.json.JSONArray;
 
 import org.reflections.Reflections;
 
+import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapperBuilder;
+import freemarker.template.MalformedTemplateNameException;
+import freemarker.template.Template;
+import freemarker.template.TemplateExceptionHandler;
+import freemarker.template.TemplateNotFoundException;
+
+
 public class ApplicationImpl {
     private static ConcurrentHashMap<String,ClientController> controllers = new ConcurrentHashMap<>();
     private static boolean clientControllersProcessed = false;
     private static String authenticatorController;
     private static String authenticatorMethod;
+    private static Configuration cfg;
     
     public ApplicationImpl(String packageName) {
         super();
@@ -46,6 +60,27 @@ public class ApplicationImpl {
         }
         xml = xml +System.lineSeparator()+"</response>";
         return xml;        
+    }
+    
+    //This doesn't belong here but for now it will do.
+    public static void initializeFreeMarker(String path){
+        if (ApplicationImpl.clientControllersProcessed==false){
+            cfg = new Configuration(Configuration.VERSION_2_3_31);
+            try {
+                cfg.setDirectoryForTemplateLoading(new File(path));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            cfg.setDefaultEncoding("UTF-8");
+            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.HTML_DEBUG_HANDLER);
+            cfg.setLogTemplateExceptions(false);
+            cfg.setWrapUncheckedExceptions(true);
+            cfg.setFallbackOnNullLoopVariable(false);
+            cfg.setObjectWrapper(new JSONArrayObjectWrapper());
+            /*DefaultObjectWrapperBuilder owb = new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_31);
+            owb.setIterableSupport(true);
+            cfg.setObjectWrapper(owb.build());*/
+        }
     }
     
     public static void processServerMethods(String packageName){
@@ -378,4 +413,8 @@ public class ApplicationImpl {
         
     }
     
+    public static Template getTemplate(String name) throws TemplateNotFoundException, MalformedTemplateNameException,
+                                                           ParseException, IOException {
+        return ApplicationImpl.cfg.getTemplate(name);
+    }
 }

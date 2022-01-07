@@ -1,6 +1,15 @@
 package co.gerger.pagelet2;
 
 
+import freemarker.core.ParseException;
+
+import freemarker.template.MalformedTemplateNameException;
+import freemarker.template.Template;
+
+import freemarker.template.TemplateNotFoundException;
+
+import java.io.IOException;
+
 import java.util.HashMap;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +47,7 @@ public class PageletServerImpl {
         String action = request.getParameter("action");
         String text = "";
         String packageName = request.getParameter("package");
+        ApplicationImpl.initializeFreeMarker(request.getServletContext().getRealPath("/"));
         ApplicationImpl.processServerMethods(packageName);        
         if (action!=null && action.equals("listservermethods")){
             text = ApplicationImpl.getServerMethods();
@@ -49,6 +59,20 @@ public class PageletServerImpl {
             text = ApplicationImpl.execute(controllerName,methodName,inputs,accessToken,response);
         }
         return text;
+    }
+    
+    public static Template getTemplate(String name) throws PageletServerException {
+        Template temp = null;
+        try{
+            temp = ApplicationImpl.getTemplate(name);    
+        } catch (MalformedTemplateNameException | ParseException | TemplateNotFoundException e) {
+            e.printStackTrace();
+            throw new PageletServerException(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new PageletServerException(e.getMessage());
+        }
+        return temp;
     }
     
     private static void log(String message){

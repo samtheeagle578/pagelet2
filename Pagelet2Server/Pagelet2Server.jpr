@@ -157,6 +157,10 @@
             <value n="id" v="Servlet Runtime"/>
             <value n="isJDK" v="false"/>
          </hash>
+         <hash>
+            <value n="id" v="Freemarker.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
       </list>
       <hash n="internalDefinitions">
          <list n="libraryDefinitions">
@@ -187,6 +191,15 @@
                <value n="id" v="Reflections-0.9.11.jar"/>
                <value n="locked" v="true"/>
             </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="libraries/freemarker.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Freemarker.jar"/>
+               <value n="id" v="Freemarker.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
          </list>
       </hash>
       <list n="libraryReferences">
@@ -208,6 +221,10 @@
          </hash>
          <hash>
             <value n="id" v="Servlet Runtime"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Freemarker.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>
