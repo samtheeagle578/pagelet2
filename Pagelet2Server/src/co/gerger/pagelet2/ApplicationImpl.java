@@ -38,6 +38,9 @@ import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
 import freemarker.template.TemplateNotFoundException;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 public class ApplicationImpl {
     private static ConcurrentHashMap<String,ClientController> controllers = new ConcurrentHashMap<>();
@@ -77,20 +80,19 @@ public class ApplicationImpl {
             cfg.setWrapUncheckedExceptions(true);
             cfg.setFallbackOnNullLoopVariable(false);
             cfg.setObjectWrapper(new JSONArrayObjectWrapper());
-            /*DefaultObjectWrapperBuilder owb = new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_31);
-            owb.setIterableSupport(true);
-            cfg.setObjectWrapper(owb.build());*/
         }
     }
     
-    public static void processServerMethods(String packageName){
-        if (ApplicationImpl.clientControllersProcessed){
-            log("Controllers already initialized");
-        }
-        else{
+    public static void processServerMethods(String packageName) throws PageletServerException {
+        //if (ApplicationImpl.clientControllersProcessed){
+            //log("Controllers already initialized");
+        //}
+        //else{
             ApplicationImpl.clientControllersProcessed = true;
             log("Initializing controllers");
-            Reflections reflections = new Reflections(packageName);
+            try{
+                Reflections reflections = new Reflections(packageName);    
+            
             Set<Class<?>> controllers = 
                 reflections.getTypesAnnotatedWith(Controller.class);
             log("SIZE ="+controllers.size());
@@ -140,14 +142,30 @@ public class ApplicationImpl {
                             //log("return type for method "+method.getName()+" is type="+returnType.getName());
                             ArrayList<String> parameterNames = new ArrayList<>();
                             String parameterName = null;
+                            for (int ii=0; ii < parameters.length; ii++){
+                                Parameter parameter = parameters[ii];
+                                if (ii==parameters.length-1 && needsCredentials){
+                                    
+                                }else{
+                                    if(!parameter.isNamePresent()) {
+                                        parameterName = "defaultParamName"+ii;
+                                    }
+                                    else{
+                                        parameterName = parameter.getName();    
+                                    }
+                                    
+                                    parameterNames.add(parameterName);
+                                }
+                            }
+                            
+                            /*
                             for (Parameter parameter : parameters) {
                                 if(!parameter.isNamePresent()) {
                                     parameterName = "defaultParamName";
                                 }
-
                                 parameterName = parameter.getName();
                                 parameterNames.add(parameterName);
-                            }
+                            }*/
                             
                             cc.addMethod(method.getName(),synchronous, publicMethod, parameterNames,returnType.getName(),authorizer, needsCredentials);
                             
@@ -166,8 +184,13 @@ public class ApplicationImpl {
                     }
 
 
-            }            
-        }
+            }
+        }catch(Exception e){
+            log("processServerMethods:ERROR:"+e.getMessage());
+            e.printStackTrace();
+            throw new PageletServerException(e);
+        }     
+        //}
     }
 
     private static Interpreter getInterpreter(){
@@ -192,7 +215,8 @@ public class ApplicationImpl {
     }*/
     
     private static void log(String message){
-        System.out.println("ApplicationImpl: "+message);    
+        //System.out.println("ApplicationImpl: "+message);
+        Logger.getLogger("ApplicationImpl").log(Level.WARNING, message);  
     }
 
     private static void setParam(int nthParam, String value, Interpreter interpreter) throws PageletServerException {
@@ -293,10 +317,12 @@ public class ApplicationImpl {
         ClientController controller = ApplicationImpl.controllers.get(controllerName);
         String returnType = controller.getMethodReturnType(methodName);
         String output = null;
+        log("callInterpreter:methodName="+methodName);
+        log("callInterpreter:returnType="+returnType);
         log("callInterpreter:simpleClassName="+controller.getSimpleClassName());
+        log("callInterpreter:1:inputs="+inputs);
         if (Constant.VOID.equals(returnType)){
             String textToRun=getBeginning()+controller.getSimpleClassName()+"."+methodName+"(";
-            log("callInterpreter:1:inputs="+inputs);
             textToRun = addParams2(textToRun,inputs,in);
             textToRun = addExceptionHandling(textToRun);
             output = "void";
@@ -387,6 +413,7 @@ public class ApplicationImpl {
             throw new PageletServerException("Cannot recognize "+controllerName+"."+methodName);
         }
         if (controller.isPublicMethod(methodName)==false){
+            log("execute:methodName="+methodName+",accessToken="+accessToken);
             authenticate(accessToken);    
         }
         log("execute:controllerName="+controllerName+", methodName="+methodName+", inputs="+inputs);

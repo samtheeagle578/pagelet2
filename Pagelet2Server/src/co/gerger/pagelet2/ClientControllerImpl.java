@@ -77,7 +77,11 @@ public class ClientControllerImpl implements ClientController {
     }
     
     public String getMethodReturnType(String methodName){
+        log("getMethodReturnType:methodName="+methodName);
+        String string = Util.documentToString(doc);
+        log("getMethodReturnType:document="+string);
         Element e = Util.getElementByName(this.doc, Constant.METHOD, methodName);
+        log("getMethodReturnType:element="+Util.getElementAsString(e));
         if (e==null){
             return null;
         }

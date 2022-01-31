@@ -3,6 +3,9 @@ package co.gerger.pagelet2;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
@@ -16,7 +19,8 @@ public class Pagelet2Servlet extends HttpServlet {
     private static final String CONTENT_TYPE = "text/html; charset=windows-1252";
     
     private void doLog(String message){
-        System.out.println("HTTP Servlet: "+message);    
+        //System.out.println("HTTP Servlet: "+message);
+        Logger.getLogger("Pagelet2Servlet").log(Level.WARNING, message);  
     }   
 
     public void init(ServletConfig config) throws ServletException {

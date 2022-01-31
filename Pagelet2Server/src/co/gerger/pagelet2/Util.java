@@ -60,16 +60,19 @@ public class Util {
     }
     
     public static Element getElementByName(Document doc, String tagName, String name){
+        log("getElementByName:=tagName="+tagName+",name="+name);
         NodeList elements = doc.getElementsByTagName(tagName);
         int length = elements.getLength();
         Element element = null;
         for (int i=0; i < length; i++){
             element = (Element)elements.item(i);
+            log("getElementByName:elementinprocess="+Util.getElementAsString(element));
+            log("getElementByName:=name="+name+",elementname="+element.getAttribute(Constant.NAME));
             if (name.equals(element.getAttribute(Constant.NAME))){
                 return element;
             }
         }
-        return element;
+        return null;
     }
     
     public static JSONArray getAsJSON(ArrayList<File> files){
@@ -209,7 +212,7 @@ public class Util {
     }
     
     private static void log(String message){
-        System.out.println("Util: "+message);     
+        //System.out.println("Util: "+message);     
     }
     
     public static Element getChildElementByAttributeValue(String name, String value, Element parentElement){        
@@ -230,7 +233,25 @@ public class Util {
         return element;          
     }
     
-    
+    public static String getElementAsString(Element e){
+        TransformerFactory transFactory = TransformerFactory.newInstance();
+        Transformer transformer=null;
+        try {
+            transformer = transFactory.newTransformer();
+        } catch (TransformerConfigurationException f) {
+            f.printStackTrace();
+        }
+        StringWriter buffer = new StringWriter();
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+        try {
+            transformer.transform(new DOMSource(e), new StreamResult(buffer));
+        } catch (TransformerException f) {
+            f.printStackTrace();
+        }
+        String str = buffer.toString();
+        return str;
+        //System.out.println(text+str);    
+    }
     
     
 }

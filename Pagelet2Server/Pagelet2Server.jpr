@@ -150,15 +150,31 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Reflections-0.9.11.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
             <value n="id" v="Servlet Runtime"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
             <value n="id" v="Freemarker.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Guava-20.0.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Javassist-3.28.0-GA.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Jsr305-3.0.2.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Reflections-0.10.2.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Slf4j-api-1.7.32.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>
@@ -184,20 +200,56 @@
             </hash>
             <hash>
                <list n="classPath">
-                  <url path="libraries/reflections-0.9.11.jar" jar-entry=""/>
-               </list>
-               <value n="deployedByDefault" v="true"/>
-               <value n="description" v="Reflections-0.9.11.jar"/>
-               <value n="id" v="Reflections-0.9.11.jar"/>
-               <value n="locked" v="true"/>
-            </hash>
-            <hash>
-               <list n="classPath">
                   <url path="libraries/freemarker.jar" jar-entry=""/>
                </list>
                <value n="deployedByDefault" v="true"/>
                <value n="description" v="Freemarker.jar"/>
                <value n="id" v="Freemarker.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="libraries/guava-20.0.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Guava-20.0.jar"/>
+               <value n="id" v="Guava-20.0.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="libraries/javassist-3.28.0-GA.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Javassist-3.28.0-GA.jar"/>
+               <value n="id" v="Javassist-3.28.0-GA.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="libraries/jsr305-3.0.2.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Jsr305-3.0.2.jar"/>
+               <value n="id" v="Jsr305-3.0.2.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="libraries/reflections-0.10.2.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Reflections-0.10.2.jar"/>
+               <value n="id" v="Reflections-0.10.2.jar"/>
+               <value n="locked" v="true"/>
+            </hash>
+            <hash>
+               <list n="classPath">
+                  <url path="libraries/slf4j-api-1.7.32.jar" jar-entry=""/>
+               </list>
+               <value n="deployedByDefault" v="true"/>
+               <value n="description" v="Slf4j-api-1.7.32.jar"/>
+               <value n="id" v="Slf4j-api-1.7.32.jar"/>
                <value n="locked" v="true"/>
             </hash>
          </list>
@@ -216,15 +268,31 @@
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
-            <value n="id" v="Reflections-0.9.11.jar"/>
-            <value n="isJDK" v="false"/>
-         </hash>
-         <hash>
             <value n="id" v="Servlet Runtime"/>
             <value n="isJDK" v="false"/>
          </hash>
          <hash>
             <value n="id" v="Freemarker.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Guava-20.0.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Javassist-3.28.0-GA.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Jsr305-3.0.2.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Reflections-0.10.2.jar"/>
+            <value n="isJDK" v="false"/>
+         </hash>
+         <hash>
+            <value n="id" v="Slf4j-api-1.7.32.jar"/>
             <value n="isJDK" v="false"/>
          </hash>
       </list>

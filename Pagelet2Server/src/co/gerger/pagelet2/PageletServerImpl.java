@@ -14,6 +14,9 @@ import java.util.HashMap;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -76,6 +79,7 @@ public class PageletServerImpl {
     }
     
     private static void log(String message){
-        System.out.println("PageletServerImpl: "+message);    
+        //System.out.println("PageletServerImpl: "+message);
+        Logger.getLogger("PageletServerImpl").log(Level.WARNING, message);  
     }
 }
