@@ -47,6 +47,8 @@ public class ApplicationImpl {
     private static boolean clientControllersProcessed = false;
     private static String authenticatorController;
     private static String authenticatorMethod;
+    private static String valueListProviderController;
+    private static String valueListProviderMethod;
     private static Configuration cfg;
     
     public ApplicationImpl(String packageName) {
@@ -84,13 +86,13 @@ public class ApplicationImpl {
     }
     
     public static void processServerMethods(String packageName) throws PageletServerException {
-        //if (ApplicationImpl.clientControllersProcessed){
-            //log("Controllers already initialized");
-        //}
-        //else{
+        if (ApplicationImpl.clientControllersProcessed){
+            log("Controllers already initialized");
+        }
+        else{
             ApplicationImpl.clientControllersProcessed = true;
             log("Initializing controllers");
-            try{
+            //try{
                 Reflections reflections = new Reflections(packageName);    
             
             Set<Class<?>> controllers = 
@@ -185,12 +187,12 @@ public class ApplicationImpl {
 
 
             }
-        }catch(Exception e){
-            log("processServerMethods:ERROR:"+e.getMessage());
-            e.printStackTrace();
-            throw new PageletServerException(e);
-        }     
-        //}
+        //}catch(Exception e){
+            //log("processServerMethods:ERROR:"+e.getMessage());
+            //e.printStackTrace();
+            //throw new PageletServerException(e);
+        //}     
+        }
     }
 
     private static Interpreter getInterpreter(){
@@ -407,7 +409,8 @@ public class ApplicationImpl {
     }
 
     
-    public static String execute(String controllerName,String methodName, String inputs, String accessToken, HttpServletResponse response) throws PageletServerException {
+    public static String execute(String controllerName,String methodName, String inputs, String accessToken, 
+                                 HttpServletResponse response, HttpServletRequest request) throws PageletServerException {
         ClientController controller = controllers.get(controllerName);
         if (controller==null){
             throw new PageletServerException("Cannot recognize "+controllerName+"."+methodName);
@@ -431,6 +434,16 @@ public class ApplicationImpl {
         log("execute:output="+output);
         if (controller.isAuthorizer(methodName)){
             Cookie accessTokenCookie = new Cookie("pagelet2accesstoken",output);
+            log("EXECUTE:DOMAIN="+request.getRequestURL().toString().replace(request.getRequestURI(),""));
+            //String domain = request.getRequestURL().toString().replace(request.getRequestURI(),"");
+            //int colon = domain.indexOf(":",7);
+            //log("EXECUTE:COLON POSITION="+colon);
+            //if (colon>0){
+                //domain = domain.substring(0, colon);    
+            //}
+            //log("EXECUTE:DOMAIN2="+domain);
+            //accessTokenCookie.setDomain(domain);
+            //log("EXECUTE:COOKIE INFO="+accessTokenCookie.getDomain()+","+ accessTokenCookie.getPath());
             accessTokenCookie.setMaxAge(3600*24*3650);
             response.addCookie(accessTokenCookie);
             return "";
@@ -438,6 +451,29 @@ public class ApplicationImpl {
         return output;
         
         
+    }
+    
+    public static String getValueList(String valueListName,String accessToken) throws PageletServerException {
+        ClientController controller = controllers.get(ApplicationImpl.valueListProviderController);
+        if (controller==null){
+            throw new PageletServerException("Cannot find a Value List Provider Controller ");
+        }
+        if (controller.isPublicMethod(ApplicationImpl.valueListProviderMethod)==false){
+            authenticate(accessToken);
+        }
+    
+        if (controller.needsCredentials(ApplicationImpl.valueListProviderMethod)){
+            if (valueListName!=null && valueListName.equals("")==false){
+                valueListName = valueListName + "~~~" + accessToken;    
+            }
+            else{
+                valueListName = Constant.NULL_VALUE + "~~~" + accessToken;    
+            }
+        }
+    
+        String output = ApplicationImpl.callInterpreter(ApplicationImpl.valueListProviderController, ApplicationImpl.valueListProviderMethod, valueListName);
+        log("execute:output="+output);
+        return output;
     }
     
     public static Template getTemplate(String name) throws TemplateNotFoundException, MalformedTemplateNameException,
