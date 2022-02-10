@@ -180,8 +180,11 @@ public class ApplicationImpl {
                         }
                         
                         if (method.isAnnotationPresent(ValueListProvider.class)){
+                            log("ADDING VALUE LIST PROVIDER="+controllerName+"."+method.getName());
                             valueListProviderController = controllerName;
                             valueListProviderMethod = method.getName();
+                        }else{
+                            log("NOT A VALUE LIST PROVIDER="+controllerName+"."+method.getName());
                         }
                         
                     }    
@@ -459,6 +462,11 @@ public class ApplicationImpl {
     }
     
     public static String getValueList(String valueListName,String accessToken) throws PageletServerException {
+        log("GET VALUE LIST:valueListName="+valueListName);
+        String inputs = null;
+        if (ApplicationImpl.valueListProviderController==null){
+            return "{}";
+        }
         ClientController controller = controllers.get(ApplicationImpl.valueListProviderController);
         if (controller==null){
             throw new PageletServerException("Cannot find a Value List Provider Controller ");
@@ -469,14 +477,14 @@ public class ApplicationImpl {
     
         if (controller.needsCredentials(ApplicationImpl.valueListProviderMethod)){
             if (valueListName!=null && valueListName.equals("")==false){
-                valueListName = valueListName + "~~~" + accessToken;    
+                inputs = valueListName + "~~~" + accessToken;    
             }
             else{
-                valueListName = Constant.NULL_VALUE + "~~~" + accessToken;    
+                inputs = Constant.NULL_VALUE + "~~~" + accessToken;    
             }
         }
-    
-        String output = ApplicationImpl.callInterpreter(ApplicationImpl.valueListProviderController, ApplicationImpl.valueListProviderMethod, valueListName);
+        log("GET VALUE LIST:inputs="+inputs);
+        String output = ApplicationImpl.callInterpreter(ApplicationImpl.valueListProviderController, ApplicationImpl.valueListProviderMethod, inputs);
         log("execute:output="+output);
         return output;
     }

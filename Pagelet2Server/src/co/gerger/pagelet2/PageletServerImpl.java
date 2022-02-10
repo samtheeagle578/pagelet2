@@ -70,7 +70,8 @@ public class PageletServerImpl {
         String accessToken = getAuthorizationToken(request);
         String text = "";
         //I can get rid of packe parameter if I send the package name or even better a hash pointing to the package name to the client with the methods
-        String valueListName = request.getParameter("valueList");
+        String valueListName = request.getParameter("valuelist");
+        log("DO VALUE LIST REQUEST:valueListName="+valueListName);
         text = ApplicationImpl.getValueList(valueListName,accessToken);
         return text;
     }
