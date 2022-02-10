@@ -179,6 +179,11 @@ public class ApplicationImpl {
                             authenticatorMethod = method.getName();
                         }
                         
+                        if (method.isAnnotationPresent(ValueListProvider.class)){
+                            valueListProviderController = controllerName;
+                            valueListProviderMethod = method.getName();
+                        }
+                        
                     }    
                 } catch (Exception e) {
                     //log("Error with bean initialization");
