@@ -42,6 +42,8 @@ public class ClientControllerImpl implements ClientController {
         this.parameterNamesByMethod.put(name, parameterNames);
         if (synchronous){
             methodElement.setAttribute("synchronous", "true");
+        }else{
+            methodElement.setAttribute("synchronous", "false");
         }
         
         if (authorizer){

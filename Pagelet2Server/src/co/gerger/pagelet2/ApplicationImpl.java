@@ -123,15 +123,22 @@ public class ApplicationImpl {
                         boolean authorizer = false;
                         boolean needsCredentials = false;
                         if (method.isAnnotationPresent(Callable.class)){
-                            //if (method.isAnnotationPresent(Synchronous.class)){
-                            synchronous = true;
+                            
+                            if (method.isAnnotationPresent(Async.class)){
+                                synchronous = false;
+                            }else{
+                                synchronous = true;
+                            }
+                                
                             //}
+                            
+                            
                             
                             if (method.isAnnotationPresent(PublicMethod.class)){
                                 publicMethod = true;
                             }
                             
-                            if (method.isAnnotationPresent(NeedsCredentials.class)){
+                            if (method.isAnnotationPresent(Credentials.class)){
                                 needsCredentials = true;
                             }
                             
