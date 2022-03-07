@@ -44,7 +44,7 @@ import java.util.logging.Logger;
 
 public class ApplicationImpl {
     private static ConcurrentHashMap<String,ClientController> controllers = new ConcurrentHashMap<>();
-    private static boolean clientControllersProcessed = false;
+    //private static boolean clientControllersProcessed = false;
     private static String authenticatorController;
     private static String authenticatorMethod;
     private static String valueListProviderController;
@@ -54,6 +54,15 @@ public class ApplicationImpl {
     public ApplicationImpl(String packageName) {
         super();
         //this.generateXMLForServerMethods(packageName);
+    }
+   
+    private static boolean areClientControllersProcessed(){
+        if (controllers.size()>0){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
     
     public static String getServerMethods(){
@@ -69,7 +78,7 @@ public class ApplicationImpl {
     
     //This doesn't belong here but for now it will do.
     public static void initializeFreeMarker(String path){
-        if (ApplicationImpl.clientControllersProcessed==false){
+        if (ApplicationImpl.areClientControllersProcessed()==false){
             cfg = new Configuration(Configuration.VERSION_2_3_31);
             try {
                 cfg.setDirectoryForTemplateLoading(new File(path));
@@ -86,11 +95,11 @@ public class ApplicationImpl {
     }
     
     public static void processServerMethods(String packageName) throws PageletServerException {
-        if (ApplicationImpl.clientControllersProcessed){
+        if (ApplicationImpl.areClientControllersProcessed()){
             log("Controllers already initialized");
         }
         else{
-            ApplicationImpl.clientControllersProcessed = true;
+            //ApplicationImpl.clientControllersProcessed = true;
             log("Initializing controllers");
             //try{
                 Reflections reflections = new Reflections(packageName);    

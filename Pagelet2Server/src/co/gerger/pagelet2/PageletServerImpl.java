@@ -53,7 +53,8 @@ public class PageletServerImpl {
         //I can get rid of packe parameter if I send the package name or even better a hash pointing to the package name to the client with the methods
         String packageName = request.getParameter("package");
         ApplicationImpl.initializeFreeMarker(request.getServletContext().getRealPath("/"));
-        ApplicationImpl.processServerMethods(packageName);        
+        ApplicationImpl.processServerMethods(packageName);
+        log("doRequest:ACTION="+action);
         if (action!=null && action.equals("listservermethods")){
             text = ApplicationImpl.getServerMethods();
         }
