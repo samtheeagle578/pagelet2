@@ -440,38 +440,44 @@ public class ApplicationImpl {
             throw new PageletServerException("Cannot recognize "+controllerName+"."+methodName);
         }
         if (controller.isPublicMethod(methodName)==false){
-            log("execute:methodName="+methodName+",accessToken="+accessToken);
+            log("EXECUTE:PUBLIC METHOD=FALSE:methodName="+methodName+",accessToken="+accessToken);
             authenticate(accessToken);    
         }
-        log("execute:controllerName="+controllerName+", methodName="+methodName+", inputs="+inputs);
+        log("EXECUTE:accessToken="+accessToken);
+        log("EXECUTE:controllerName="+controllerName+", methodName="+methodName+", inputs="+inputs);
     
         if (controller.needsCredentials(methodName)){
+            log("EXECUTE:NEEDS CREDENTIALS=TRUE");
             if (inputs!=null && inputs.equals("")==false){
                 inputs = inputs + "~~~" + accessToken;    
             }
             else{
                 inputs = accessToken;
             }
+            log("EXECUTE:inputs="+accessToken);
         }
     
         String output = ApplicationImpl.callInterpreter(controllerName, methodName, inputs);
-        log("execute:output="+output);
-        if (controller.isAuthorizer(methodName)){
+        log("EXECUTE:OUTPUT="+output);
+        /*if (controller.isAuthorizer(methodName)){
+            log("EXECUTE:AUTHORIZER=TRUE");
             Cookie accessTokenCookie = new Cookie("pagelet2accesstoken",output);
-            log("EXECUTE:DOMAIN="+request.getRequestURL().toString().replace(request.getRequestURI(),""));
-            //String domain = request.getRequestURL().toString().replace(request.getRequestURI(),"");
+            log("EXECUTE:DOMAIN="+request.getRequestURL().toString());
+            log("EXECUTE:URI="+request.getRequestURI());
+            String domain = request.getRequestURL().toString().replace("/pagelet2servlet","");
+            log("EXECUTE:domain="+domain);
             //int colon = domain.indexOf(":",7);
             //log("EXECUTE:COLON POSITION="+colon);
             //if (colon>0){
                 //domain = domain.substring(0, colon);    
             //}
             //log("EXECUTE:DOMAIN2="+domain);
-            //accessTokenCookie.setDomain(domain);
+            accessTokenCookie.setDomain(domain);
             //log("EXECUTE:COOKIE INFO="+accessTokenCookie.getDomain()+","+ accessTokenCookie.getPath());
             accessTokenCookie.setMaxAge(3600*24*3650);
             response.addCookie(accessTokenCookie);
             return "";
-        }
+        }*/
         return output;
         
         

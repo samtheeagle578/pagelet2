@@ -31,15 +31,20 @@ public class PageletServerImpl {
     public static String getAuthorizationToken(HttpServletRequest request){
         Cookie[] cookies = request.getCookies();
         String accessToken = null;
-        log("doRequest:about to loop cookies");
+        log("GET AUTH TOKEN:about to loop cookies");
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                log("doRequest:cookie name="+cookie.getName());
+                log("GET AUTH TOKEN:cookie name="+cookie.getName());
+                log("GET AUTH TOKEN:cookie value="+cookie.getValue());
                 if (cookie.getName().equals("pagelet2accesstoken")) {
+                    log("PAGELET2 COOKIE DETECTED");
                     accessToken = cookie.getValue();
+                }else{
+                    log("NOT PAGELET2 COOKIE:cookieName="+cookie.getName());
                 }
             }
-        }  
+        }
+        log("GET AUTH TOKEN:accessToken="+accessToken);
         return accessToken;
     }
     
