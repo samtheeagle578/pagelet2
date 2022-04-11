@@ -131,8 +131,14 @@ public class ApplicationImpl {
                         boolean publicMethod = false;
                         boolean authorizer = false;
                         boolean needsCredentials = false;
+                        String roles = null;
+                        Callable callable = null;
                         if (method.isAnnotationPresent(Callable.class)){
-                            
+                            callable = method.getAnnotation(Callable.class);
+                            roles = callable.by();
+                            if ("default".equals(roles)){
+                                
+                            }
                             if (method.isAnnotationPresent(Async.class)){
                                 synchronous = false;
                             }else{
@@ -185,7 +191,7 @@ public class ApplicationImpl {
                                 parameterNames.add(parameterName);
                             }*/
                             
-                            cc.addMethod(method.getName(),synchronous, publicMethod, parameterNames,returnType.getName(),authorizer, needsCredentials);
+                            cc.addMethod(method.getName(),synchronous, publicMethod, parameterNames,returnType.getName(),authorizer, needsCredentials,roles);
                             
                         }
                         ApplicationImpl.controllers.putIfAbsent(controllerName, cc);
@@ -338,10 +344,21 @@ public class ApplicationImpl {
         return " JSONArray result = null; error=\"NO_ERROR\"; try { ";
     }
     
-    private static String callInterpreter(String controllerName, String methodName, String inputs) throws PageletServerException {
+    private static String callInterpreter(String controllerName, String methodName, String inputs, String role) throws PageletServerException {
         Interpreter in = ApplicationImpl.getInterpreter();
         ClientController controller = ApplicationImpl.controllers.get(controllerName);
         String returnType = controller.getMethodReturnType(methodName);
+        boolean canExecute = false;
+        if (controllerName.equals(ApplicationImpl.authenticatorController) && methodName.equals(ApplicationImpl.authenticatorMethod)){
+            canExecute = true;
+        }else if (controllerName.equals(ApplicationImpl.valueListProviderController) && methodName.equals(ApplicationImpl.valueListProviderMethod)){
+            canExecute = true;
+        }else{
+            canExecute = controller.canExecute(methodName,role);
+        }
+        if (canExecute==false){
+            throw new PageletServerException("User with role "+role+" cannot execute this method.");
+        }
         String output = null;
         log("callInterpreter:methodName="+methodName);
         log("callInterpreter:returnType="+returnType);
@@ -417,11 +434,13 @@ public class ApplicationImpl {
         return output;
     }   
 
-    private static void authenticate(String accessToken) throws PageletServerException {
+    private static String authenticate(String methodName, String accessToken) throws PageletServerException {
+        String role = null;
         if (ApplicationImpl.authenticatorMethod!=null && ApplicationImpl.authenticatorMethod.equals("")==false){
             try {
                 if (accessToken!=null && "".equals(accessToken)==false){
-                    String output = ApplicationImpl.callInterpreter(ApplicationImpl.authenticatorController, ApplicationImpl.authenticatorMethod, accessToken);    
+                    role = ApplicationImpl.callInterpreter(ApplicationImpl.authenticatorController, ApplicationImpl.authenticatorMethod, accessToken,"");
+                    
                 }
                 else{
                     throw new Exception();
@@ -429,19 +448,21 @@ public class ApplicationImpl {
             } catch (Exception e) {
                 throw new PageletServerException("This session is not authorized to execute this function");
             }    
-        }        
+        }
+        return role;
     }
 
     
     public static String execute(String controllerName,String methodName, String inputs, String accessToken, 
                                  HttpServletResponse response, HttpServletRequest request) throws PageletServerException {
         ClientController controller = controllers.get(controllerName);
+        String role = null;
         if (controller==null){
             throw new PageletServerException("Cannot recognize "+controllerName+"."+methodName);
         }
         if (controller.isPublicMethod(methodName)==false){
             log("EXECUTE:PUBLIC METHOD=FALSE:methodName="+methodName+",accessToken="+accessToken);
-            authenticate(accessToken);    
+            role = authenticate(methodName,accessToken);    
         }
         log("EXECUTE:accessToken="+accessToken);
         log("EXECUTE:controllerName="+controllerName+", methodName="+methodName+", inputs="+inputs);
@@ -457,7 +478,7 @@ public class ApplicationImpl {
             log("EXECUTE:inputs="+accessToken);
         }
     
-        String output = ApplicationImpl.callInterpreter(controllerName, methodName, inputs);
+        String output = ApplicationImpl.callInterpreter(controllerName, methodName, inputs, role);
         log("EXECUTE:OUTPUT="+output);
         /*if (controller.isAuthorizer(methodName)){
             log("EXECUTE:AUTHORIZER=TRUE");
@@ -494,7 +515,7 @@ public class ApplicationImpl {
             throw new PageletServerException("Cannot find a Value List Provider Controller ");
         }
         if (controller.isPublicMethod(ApplicationImpl.valueListProviderMethod)==false){
-            authenticate(accessToken);
+            authenticate(ApplicationImpl.valueListProviderMethod,accessToken);
         }
     
         if (controller.needsCredentials(ApplicationImpl.valueListProviderMethod)){
@@ -506,7 +527,7 @@ public class ApplicationImpl {
             }
         }
         log("GET VALUE LIST:inputs="+inputs);
-        String output = ApplicationImpl.callInterpreter(ApplicationImpl.valueListProviderController, ApplicationImpl.valueListProviderMethod, inputs);
+        String output = ApplicationImpl.callInterpreter(ApplicationImpl.valueListProviderController, ApplicationImpl.valueListProviderMethod, inputs,"");
         log("execute:output="+output);
         return output;
     }

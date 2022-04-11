@@ -13,6 +13,7 @@ import org.w3c.dom.ls.LSSerializer;
 public class ClientControllerImpl implements ClientController {
     Document doc;
     ArrayList<String> callableMethodNames;
+    HashMap<String,ArrayList<String>> callableMethodRoles;
     HashMap<String,ArrayList<String>> parameterNamesByMethod;
     ArrayList<String> publicMethodNames;
     ArrayList<String> methodsThatNeedCredentials;
@@ -29,16 +30,25 @@ public class ClientControllerImpl implements ClientController {
         element.setAttribute("name",name);
         this.doc.appendChild(element);
         this.callableMethodNames = new ArrayList<>();
+        this.callableMethodRoles = new HashMap<>();
         this.publicMethodNames = new ArrayList<>();
         this.parameterNamesByMethod = new HashMap<>();
         this.methodsThatNeedCredentials = new ArrayList<String>();
     }
     
-    public void addMethod(String name, boolean synchronous, boolean publicMethod, ArrayList<String> parameterNames, String returnType, boolean authorizer, boolean needsCredentials){
+    public void addMethod(String name, boolean synchronous, boolean publicMethod, ArrayList<String> parameterNames, String returnType, boolean authorizer, boolean needsCredentials, String roles){
         Element methodElement=this.doc.createElement("method");
         methodElement.setAttribute("name", name);
         methodElement.setAttribute("returntype", returnType);
         this.callableMethodNames.add(name);
+        if (roles!=null && roles.equals("")==false){
+            String[] splitRoles =roles.split(",");
+            ArrayList<String> roleList = new ArrayList<>();
+            for (int i=0; i < splitRoles.length; i++){
+                roleList.add(splitRoles[i]);
+            }
+            this.callableMethodRoles.put(name, roleList);
+        }
         this.parameterNamesByMethod.put(name, parameterNames);
         if (synchronous){
             methodElement.setAttribute("synchronous", "true");
@@ -130,5 +140,28 @@ public class ClientControllerImpl implements ClientController {
     @Override
     public String getSimpleClassName() {
         return this.simpleClassName;
+    }
+
+    @Override
+    public boolean canExecute(String methodName, String roleName) {
+        ArrayList<String> roles = this.callableMethodRoles.get(methodName);
+        if (roles.size()==1){
+            String role = roles.get(0);
+            if (role.equals("default")){
+                return true;
+            }
+            if (role.equals(roleName)){
+                return true;
+            }else{
+                return false;
+            }
+        }else{
+            for(String role: roles){
+                if (role.equals("roleName")){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
