@@ -41,6 +41,8 @@ import freemarker.template.TemplateNotFoundException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.json.JSONObject;
+
 
 public class ApplicationImpl {
     private static ConcurrentHashMap<String,ClientController> controllers = new ConcurrentHashMap<>();
@@ -162,10 +164,12 @@ public class ApplicationImpl {
                             }
                             
                             Parameter[] parameters = method.getParameters();
+                            Class<?>[] parameterTypes = method.getParameterTypes();
                             Class<?> returnType = method.getReturnType();
                             //log("return type for method "+method.getName()+" is type="+returnType.getName());
-                            ArrayList<String> parameterNames = new ArrayList<>();
+                            ArrayList<MethodParameterImpl> methodParameters = new ArrayList<>();
                             String parameterName = null;
+                            String parameterType = null;
                             for (int ii=0; ii < parameters.length; ii++){
                                 Parameter parameter = parameters[ii];
                                 if (ii==parameters.length-1 && needsCredentials){
@@ -173,12 +177,23 @@ public class ApplicationImpl {
                                 }else{
                                     if(!parameter.isNamePresent()) {
                                         parameterName = "defaultParamName"+ii;
+                                        if ("org.json.JSONObject".equals(parameterTypes[ii].getName())){
+                                            parameterType = "JSONObject";
+                                        }else{
+                                            parameterType = "String";
+                                        }
                                     }
                                     else{
                                         parameterName = parameter.getName();    
+                                        if ("org.json.JSONObject".equals(parameterTypes[ii].getName())){
+                                            parameterType = "JSONObject";
+                                        }else{
+                                            parameterType = "String";
+                                        }
+                                        
                                     }
-                                    
-                                    parameterNames.add(parameterName);
+                                    //log(">>>>>>>>>>>PROCESS:METHOD="+method.getName()+"paramName="+parameterName+",parameterType="+parameterType);
+                                    methodParameters.add(new MethodParameterImpl(parameterName,parameterType));
                                 }
                             }
                             
@@ -191,7 +206,7 @@ public class ApplicationImpl {
                                 parameterNames.add(parameterName);
                             }*/
                             
-                            cc.addMethod(method.getName(),synchronous, publicMethod, parameterNames,returnType.getName(),authorizer, needsCredentials,roles);
+                            cc.addMethod(method.getName(),synchronous, publicMethod, methodParameters,returnType.getName(),authorizer, needsCredentials,roles);
                             
                         }
                         ApplicationImpl.controllers.putIfAbsent(controllerName, cc);
@@ -262,33 +277,66 @@ public class ApplicationImpl {
         }
     }
     
-    private static String addParams2(String textToRun,String inputs, Interpreter interpreter) throws PageletServerException {
+    private static void setParam(int nthParam, Object value, Interpreter interpreter) throws PageletServerException {
+        try {
+            log("Setting param"+nthParam+" to "+value);
+            interpreter.set("param"+nthParam, value);
+        } catch (EvalError e) {
+            log("ScriptStacktrace2="+e.getScriptStackTrace());
+            //e.printStackTrace();
+            throw new PageletServerException(e.getMessage());
+        }
+    }
+    
+    private static String addParams2(String textToRun,String inputs, Interpreter interpreter,ArrayList<MethodParameterImpl> parameters) throws PageletServerException {
         if (inputs!=null && inputs.equals("")==false){
             String[] params = inputs.split("~~~");
             if (params!=null && params.length>0){
+                MethodParameterImpl parameter = null;
                 for (int i=0; i<params.length; i++){
-                    //params[i] = params[i].replace(String.valueOf((char)10), "\\n");
-                    //params[i] = params[i].replace("\"", "\\\"");
+                    parameter = parameters.get(i);
                     if (i==0){
-                        if (params[i].equals(Constant.NULL_VALUE)){
-                            setParam(i,"",interpreter);
-                            textToRun = textToRun + "param"+i;
+                        if ("JSONObject".equals(parameter.getType())){
+                            if (params[i].equals(Constant.NULL_VALUE)){
+                                setParam(i,new JSONObject(),interpreter);
+                                textToRun = textToRun + "param"+i;
+                            }
+                            else{
+                                setParam(i,new JSONObject(params[i]),interpreter);
+                                textToRun = textToRun + "param"+i;    
+                            }
+                        }else{
+                            if (params[i].equals(Constant.NULL_VALUE)){
+                                setParam(i,"",interpreter);
+                                textToRun = textToRun + "param"+i;
+                            }
+                            else{
+                                setParam(i,params[i],interpreter);
+                                textToRun = textToRun + "param"+i;    
+                            }    
                         }
-                        else{
-                            setParam(i,params[i],interpreter);
-                            textToRun = textToRun + "param"+i;    
-                        }
-                        
                     }
                     else{
-                        if (params[i].equals(Constant.NULL_VALUE)){
-                            setParam(i,"",interpreter);
-                            textToRun = textToRun + ",param"+i;        
+                        if ("JSONObject".equals(parameter.getType())){
+                            if (params[i].equals(Constant.NULL_VALUE)){
+                                setParam(i,new JSONObject(),interpreter);
+                                textToRun = textToRun + ",param"+i;        
+                            }
+                            else{
+                                setParam(i,new JSONObject(params[i]),interpreter);
+                                textToRun = textToRun + ",param"+i;        
+                            }
+                        }else{
+                            if (params[i].equals(Constant.NULL_VALUE)){
+                                setParam(i,"",interpreter);
+                                textToRun = textToRun + ",param"+i;        
+                            }
+                            else{
+                                setParam(i,params[i],interpreter);
+                                textToRun = textToRun + ",param"+i;        
+                            }    
                         }
-                        else{
-                            setParam(i,params[i],interpreter);
-                            textToRun = textToRun + ",param"+i;        
-                        }
+                        
                         
                     }
                 }
@@ -348,24 +396,35 @@ public class ApplicationImpl {
         ClientController controller = ApplicationImpl.controllers.get(controllerName);
         String returnType = controller.getMethodReturnType(methodName);
         boolean canExecute = false;
+        ArrayList<MethodParameterImpl> parameters = null;
+        log(">>>>>>>>>>>>>>>>>CALL INTERPRETER:START:controllerName="+controllerName+",methodName="+methodName);
         if (controllerName.equals(ApplicationImpl.authenticatorController) && methodName.equals(ApplicationImpl.authenticatorMethod)){
             canExecute = true;
+            parameters = new ArrayList<>();
+            parameters.add(new MethodParameterImpl("accessToken","String"));
+            log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing authenticate");
         }else if (controllerName.equals(ApplicationImpl.valueListProviderController) && methodName.equals(ApplicationImpl.valueListProviderMethod)){
             canExecute = true;
+            parameters = new ArrayList<>();
+            parameters.add(new MethodParameterImpl("valueListName","String"));
+            parameters.add(new MethodParameterImpl("accessToken","String"));
+            log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing value list provider");
         }else{
             canExecute = controller.canExecute(methodName,role);
+            parameters = controller.getMethodParameters(methodName);
+            log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing regular code");
         }
         if (canExecute==false){
             throw new PageletServerException("User with role "+role+" cannot execute this method.");
         }
         String output = null;
-        log("callInterpreter:methodName="+methodName);
-        log("callInterpreter:returnType="+returnType);
-        log("callInterpreter:simpleClassName="+controller.getSimpleClassName());
-        log("callInterpreter:1:inputs="+inputs);
+        //log("callInterpreter:methodName="+methodName);
+        //log("callInterpreter:returnType="+returnType);
+        //log("callInterpreter:simpleClassName="+controller.getSimpleClassName());
+        //log("callInterpreter:1:inputs="+inputs);
         if (Constant.VOID.equals(returnType)){
             String textToRun=getBeginning()+controller.getSimpleClassName()+"."+methodName+"(";
-            textToRun = addParams2(textToRun,inputs,in);
+            textToRun = addParams2(textToRun,inputs,in,parameters);
             textToRun = addExceptionHandling(textToRun);
             output = "void";
             try {
@@ -383,7 +442,7 @@ public class ApplicationImpl {
         }
         else if (Constant.JSONArray.equals(returnType)){
             String textToRun=getJSONBeginning()+"result = "+controller.getSimpleClassName()+"."+methodName+"(";
-            textToRun = addParams2(textToRun,inputs,in);
+            textToRun = addParams2(textToRun,inputs,in,parameters);
             textToRun = addExceptionHandling(textToRun);
             JSONArray jsonArray = null;
             try {
@@ -409,7 +468,7 @@ public class ApplicationImpl {
         else{
             log("callInterpreter:2:inputs="+inputs);
             String textToRun=getBeginning()+"resultString = "+controller.getSimpleClassName()+"."+methodName+"(";
-            textToRun = addParams2(textToRun,inputs,in);
+            textToRun = addParams2(textToRun,inputs,in,parameters);
             textToRun = addExceptionHandling(textToRun);
             try {
                 log("Running:code="+textToRun);
@@ -445,6 +504,7 @@ public class ApplicationImpl {
                     throw new Exception();
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 throw new PageletServerException("This session is not authorized to execute this function");
             }    
         }

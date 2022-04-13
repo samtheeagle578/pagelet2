@@ -14,7 +14,7 @@ public class ClientControllerImpl implements ClientController {
     Document doc;
     ArrayList<String> callableMethodNames;
     HashMap<String,ArrayList<String>> callableMethodRoles;
-    HashMap<String,ArrayList<String>> parameterNamesByMethod;
+    HashMap<String,ArrayList<MethodParameterImpl>> parametersByMethod;
     ArrayList<String> publicMethodNames;
     ArrayList<String> methodsThatNeedCredentials;
     String authorizerMethodName;
@@ -32,11 +32,11 @@ public class ClientControllerImpl implements ClientController {
         this.callableMethodNames = new ArrayList<>();
         this.callableMethodRoles = new HashMap<>();
         this.publicMethodNames = new ArrayList<>();
-        this.parameterNamesByMethod = new HashMap<>();
+        this.parametersByMethod = new HashMap<>();
         this.methodsThatNeedCredentials = new ArrayList<String>();
     }
     
-    public void addMethod(String name, boolean synchronous, boolean publicMethod, ArrayList<String> parameterNames, String returnType, boolean authorizer, boolean needsCredentials, String roles){
+    public void addMethod(String name, boolean synchronous, boolean publicMethod, ArrayList<MethodParameterImpl> parameters, String returnType, boolean authorizer, boolean needsCredentials, String roles){
         Element methodElement=this.doc.createElement("method");
         methodElement.setAttribute("name", name);
         methodElement.setAttribute("returntype", returnType);
@@ -49,7 +49,6 @@ public class ClientControllerImpl implements ClientController {
             }
             this.callableMethodRoles.put(name, roleList);
         }
-        this.parameterNamesByMethod.put(name, parameterNames);
         if (synchronous){
             methodElement.setAttribute("synchronous", "true");
         }else{
@@ -68,13 +67,20 @@ public class ClientControllerImpl implements ClientController {
             this.methodsThatNeedCredentials.add(name);
         }
         
-        if (parameterNames.size()>0){
-            for(String param : parameterNames){
+        if (parameters.size()>0){
+            for(MethodParameterImpl param : parameters){
                 Element paramE = this.doc.createElement("parameter");
-                paramE.setAttribute("name", param);
+                paramE.setAttribute("name", param.getName());
+                paramE.setAttribute("type", param.getType());
                 methodElement.appendChild(paramE);
             }
         }
+    
+        if (needsCredentials){
+            parameters.add(new MethodParameterImpl("accessToken","String"));
+        }
+        this.parametersByMethod.put(name, parameters);            
+        
         this.doc.getDocumentElement().appendChild((Node)methodElement);
     }
     
@@ -98,6 +104,11 @@ public class ClientControllerImpl implements ClientController {
             return null;
         }
         return e.getAttribute(Constant.RETURN_TYPE);
+    }
+    
+    public ArrayList<MethodParameterImpl> getMethodParameters(String methodName){
+        ArrayList<MethodParameterImpl> parameters = this.parametersByMethod.get(methodName);
+        return this.parametersByMethod.get(methodName);
     }
     
     public boolean isPublicMethod(String methodName){
