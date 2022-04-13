@@ -297,7 +297,6 @@ public class ApplicationImpl {
         textToRun = textToRun + ");";
         return textToRun;
     }
-    //fix code injection problems later
     //right before attempting surgery
     private String addParams(String textToRun, String inputs){
         if (inputs!=null && inputs.equals("")==false){
