@@ -40,17 +40,17 @@ public class Pagelet2Servlet extends HttpServlet {
         String result= "";
         doLog("step 1");
         try {
+            response.setContentType(CONTENT_TYPE);
             result = PageletServerImpl.doRequest(request,response);
+            out.print(result);                    
         } catch (PageletServerException e) {
             e.printStackTrace();
-            //out.print("ServerException:");
-            //out.print(e.getMessage());
+            out.print("ServerException:");
+            out.print(e.getMessage());
         }
-        doLog("step 4");
-        response.setContentType(CONTENT_TYPE);
-        out.print(result);                        
+        //doLog("step 4");
         out.close();
-        doLog("step 5");
+        //doLog("step 5");
 
     }
 }

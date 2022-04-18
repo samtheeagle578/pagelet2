@@ -262,7 +262,7 @@ public class ApplicationImpl {
     }*/
     
     private static void log(String message){
-        //System.out.println("ApplicationImpl: "+message);
+        System.out.println("ApplicationImpl: "+message);
         Logger.getLogger("ApplicationImpl").log(Level.WARNING, message);  
     }
 
@@ -505,7 +505,7 @@ public class ApplicationImpl {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                throw new PageletServerException("This session is not authorized to execute this function");
+                throw new PageletServerException("This session is not authorized to execute this function:"+methodName);
             }    
         }
         return role;
