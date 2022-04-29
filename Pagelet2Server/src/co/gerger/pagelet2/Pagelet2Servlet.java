@@ -16,7 +16,7 @@ import org.xml.sax.SAXException;
 
 @WebServlet(name = "Pagelet2Servlet", urlPatterns = { "/pagelet2servlet" })
 public class Pagelet2Servlet extends HttpServlet {
-    private static final String CONTENT_TYPE = "text/html; charset=windows-1252";
+    private static final String CONTENT_TYPE = "text/html; charset=utf-8";
     
     private void doLog(String message){
         //System.out.println("HTTP Servlet: "+message);

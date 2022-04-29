@@ -102,8 +102,20 @@ public class ApplicationImpl {
         }
         else{
             //ApplicationImpl.clientControllersProcessed = true;
-            log("Initializing controllers");
-            //try{
+            log("Initializing controllers1="+packageName);
+            if (packageName!=null && packageName.equals("")==false){
+                log("Initializing controllers2="+packageName);
+                String systemPackageName = System.getProperty("packageName");
+                if (systemPackageName==null || systemPackageName.equals("")){
+                    log("Initializing controllers2.1="+packageName);
+                    System.setProperty("packageName", packageName);    
+                }
+                
+            }else{
+                packageName = System.getProperty("packageName");
+                log("Initializing controllers3="+packageName);
+            }
+            log("Initializing controllers4="+packageName);
                 Reflections reflections = new Reflections(packageName);    
             
             Set<Class<?>> controllers = 
