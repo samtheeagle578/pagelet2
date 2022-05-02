@@ -576,7 +576,17 @@ public class ApplicationImpl {
             
         }
         JSONObject result = new JSONObject();
-        result.put("output", output);
+        if (output!=null && (output.startsWith("{") || output.startsWith("[")) ){
+            if (output.startsWith("{")){
+                JSONObject jsonOutput = new JSONObject(output);
+                result.put("output", jsonOutput);
+            }else if (output.startsWith("[")){
+                JSONArray jsonOutput = new JSONArray(output);
+                result.put("output", jsonOutput); 
+            }
+        }else{
+            result.put("output", output); 
+        }
         if (version!=null){
             result.put("version",version);
         }
