@@ -3,7 +3,8 @@ package co.gerger.pagelet2;
 import java.util.ArrayList;
 
 public interface ClientController {
-    void addMethod(String name, boolean synchronous, boolean publicMethod, ArrayList<MethodParameterImpl> parameterNames, String returnType, boolean authorizer, boolean needsCredentials, String roles);
+    void addMethod(String name, boolean synchronous, boolean publicMethod, ArrayList<MethodParameterImpl> parameterNames, 
+                   String returnType, boolean authorizer, boolean needsCredentials, String roles, boolean version);
     String getText();
     String getMethodReturnType(String methodName);
     String getClassName();

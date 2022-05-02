@@ -52,6 +52,8 @@ public class ApplicationImpl {
     private static String valueListProviderController;
     private static String valueListProviderMethod;
     private static Configuration cfg;
+    private static String versionController;
+    private static String versionMethod;
     
     public ApplicationImpl(String packageName) {
         super();
@@ -145,6 +147,7 @@ public class ApplicationImpl {
                         boolean publicMethod = false;
                         boolean authorizer = false;
                         boolean needsCredentials = false;
+                        boolean version = false;
                         String roles = null;
                         Callable callable = null;
                         if (method.isAnnotationPresent(Callable.class)){
@@ -173,6 +176,10 @@ public class ApplicationImpl {
                             
                             if (method.isAnnotationPresent(Authorizer.class)){
                                 authorizer = true;
+                            }
+                            
+                            if (method.isAnnotationPresent(Version.class)){
+                                version = true;
                             }
                             
                             Parameter[] parameters = method.getParameters();
@@ -218,7 +225,7 @@ public class ApplicationImpl {
                                 parameterNames.add(parameterName);
                             }*/
                             
-                            cc.addMethod(method.getName(),synchronous, publicMethod, methodParameters,returnType.getName(),authorizer, needsCredentials,roles);
+                            cc.addMethod(method.getName(),synchronous, publicMethod, methodParameters,returnType.getName(),authorizer, needsCredentials,roles, version);
                             
                         }
                         ApplicationImpl.controllers.putIfAbsent(controllerName, cc);
@@ -226,6 +233,11 @@ public class ApplicationImpl {
                         if (method.isAnnotationPresent(Authenticator.class)){
                             authenticatorController = controllerName;
                             authenticatorMethod = method.getName();
+                        }
+                        
+                        if (method.isAnnotationPresent(Version.class)){
+                            versionController = controllerName;
+                            versionMethod = method.getName();
                         }
                         
                         if (method.isAnnotationPresent(ValueListProvider.class)){
@@ -535,6 +547,7 @@ public class ApplicationImpl {
             log("EXECUTE:PUBLIC METHOD=FALSE:methodName="+methodName+",accessToken="+accessToken);
             role = authenticate(methodName,accessToken);    
         }
+        
         log("EXECUTE:accessToken="+accessToken);
         log("EXECUTE:controllerName="+controllerName+", methodName="+methodName+", inputs="+inputs);
     
@@ -600,7 +613,22 @@ public class ApplicationImpl {
         log("GET VALUE LIST:inputs="+inputs);
         String output = ApplicationImpl.callInterpreter(ApplicationImpl.valueListProviderController, ApplicationImpl.valueListProviderMethod, inputs,"");
         log("execute:output="+output);
-        return output;
+        JSONObject version = null;
+        if (ApplicationImpl.versionMethod!=null && ApplicationImpl.versionMethod.equals("")==false){
+            String versionInfo = ApplicationImpl.callInterpreter(ApplicationImpl.versionController, ApplicationImpl.versionMethod, null,"");
+            try{
+                version = new JSONObject(versionInfo);    
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+            
+        }
+        JSONObject result = new JSONObject();
+        result.put("output", output);
+        if (version!=null){
+            result.put("version",version);
+        }
+        return result.toString();
     }
     
     public static Template getTemplate(String name) throws TemplateNotFoundException, MalformedTemplateNameException,

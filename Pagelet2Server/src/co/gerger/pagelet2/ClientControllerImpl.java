@@ -18,6 +18,7 @@ public class ClientControllerImpl implements ClientController {
     ArrayList<String> publicMethodNames;
     ArrayList<String> methodsThatNeedCredentials;
     String authorizerMethodName;
+    String versionMethodName;
     String className;
     String simpleClassName;
     
@@ -36,7 +37,8 @@ public class ClientControllerImpl implements ClientController {
         this.methodsThatNeedCredentials = new ArrayList<String>();
     }
     
-    public void addMethod(String name, boolean synchronous, boolean publicMethod, ArrayList<MethodParameterImpl> parameters, String returnType, boolean authorizer, boolean needsCredentials, String roles){
+    public void addMethod(String name, boolean synchronous, boolean publicMethod, ArrayList<MethodParameterImpl> parameters, 
+                          String returnType, boolean authorizer, boolean needsCredentials, String roles, boolean version){
         Element methodElement=this.doc.createElement("method");
         methodElement.setAttribute("name", name);
         methodElement.setAttribute("returntype", returnType);
@@ -57,6 +59,10 @@ public class ClientControllerImpl implements ClientController {
         
         if (authorizer){
             this.authorizerMethodName = name;
+        }
+        
+        if (version){
+            this.versionMethodName = name;
         }
         
         if (publicMethod){
