@@ -564,26 +564,24 @@ public class ApplicationImpl {
     
         String output = ApplicationImpl.callInterpreter(controllerName, methodName, inputs, role);
         log("EXECUTE:OUTPUT="+output);
-        /*if (controller.isAuthorizer(methodName)){
-            log("EXECUTE:AUTHORIZER=TRUE");
-            Cookie accessTokenCookie = new Cookie("pagelet2accesstoken",output);
-            log("EXECUTE:DOMAIN="+request.getRequestURL().toString());
-            log("EXECUTE:URI="+request.getRequestURI());
-            String domain = request.getRequestURL().toString().replace("/pagelet2servlet","");
-            log("EXECUTE:domain="+domain);
-            //int colon = domain.indexOf(":",7);
-            //log("EXECUTE:COLON POSITION="+colon);
-            //if (colon>0){
-                //domain = domain.substring(0, colon);    
-            //}
-            //log("EXECUTE:DOMAIN2="+domain);
-            accessTokenCookie.setDomain(domain);
-            //log("EXECUTE:COOKIE INFO="+accessTokenCookie.getDomain()+","+ accessTokenCookie.getPath());
-            accessTokenCookie.setMaxAge(3600*24*3650);
-            response.addCookie(accessTokenCookie);
-            return "";
-        }*/
-        return output;
+        
+        JSONObject version = null;
+        if (ApplicationImpl.versionMethod!=null && ApplicationImpl.versionMethod.equals("")==false){
+            String versionInfo = ApplicationImpl.callInterpreter(ApplicationImpl.versionController, ApplicationImpl.versionMethod, null,"");
+            try{
+                version = new JSONObject(versionInfo);    
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+            
+        }
+        JSONObject result = new JSONObject();
+        result.put("output", output);
+        if (version!=null){
+            result.put("version",version);
+        }
+        
+        return result.toString();
         
         
     }
@@ -613,22 +611,8 @@ public class ApplicationImpl {
         log("GET VALUE LIST:inputs="+inputs);
         String output = ApplicationImpl.callInterpreter(ApplicationImpl.valueListProviderController, ApplicationImpl.valueListProviderMethod, inputs,"");
         log("execute:output="+output);
-        JSONObject version = null;
-        if (ApplicationImpl.versionMethod!=null && ApplicationImpl.versionMethod.equals("")==false){
-            String versionInfo = ApplicationImpl.callInterpreter(ApplicationImpl.versionController, ApplicationImpl.versionMethod, null,"");
-            try{
-                version = new JSONObject(versionInfo);    
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-            
-        }
-        JSONObject result = new JSONObject();
-        result.put("output", output);
-        if (version!=null){
-            result.put("version",version);
-        }
-        return result.toString();
+        
+        return output;
     }
     
     public static Template getTemplate(String name) throws TemplateNotFoundException, MalformedTemplateNameException,
