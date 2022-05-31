@@ -44,6 +44,10 @@ public class PageletServerImpl {
                 }
             }
         }
+        //in a promise chain i wasnt bale to send the cookie that is set in a previous promise.
+        if (accessToken==null || "".equals(accessToken)){
+            accessToken = request.getParameter("pagelet2accesstoken2");
+        }
         log("GET AUTH TOKEN:accessToken="+accessToken);
         return accessToken;
     }
