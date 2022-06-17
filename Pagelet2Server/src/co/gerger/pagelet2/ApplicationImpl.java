@@ -286,7 +286,7 @@ public class ApplicationImpl {
     }*/
     
     private static void log(String message){
-        System.out.println("ApplicationImpl: "+message);
+        //System.out.println("ApplicationImpl: "+message);
         Logger.getLogger("ApplicationImpl").log(Level.WARNING, message);  
     }
 
@@ -415,7 +415,7 @@ public class ApplicationImpl {
         return " JSONArray result = null; error=\"NO_ERROR\"; try { ";
     }
     
-    private static String callInterpreter(String controllerName, String methodName, String inputs, String role) throws PageletServerException {
+    public static String callInterpreter(String controllerName, String methodName, String inputs, String role) throws PageletServerException {
         Interpreter in = ApplicationImpl.getInterpreter();
         ClientController controller = ApplicationImpl.controllers.get(controllerName);
         String returnType = controller.getMethodReturnType(methodName);
@@ -443,7 +443,7 @@ public class ApplicationImpl {
         }
         String output = null;
         //log("callInterpreter:methodName="+methodName);
-        //log("callInterpreter:returnType="+returnType);
+        log("callInterpreter:returnType="+returnType);
         //log("callInterpreter:simpleClassName="+controller.getSimpleClassName());
         //log("callInterpreter:1:inputs="+inputs);
         if (Constant.VOID.equals(returnType)){
@@ -628,5 +628,17 @@ public class ApplicationImpl {
     public static Template getTemplate(String name) throws TemplateNotFoundException, MalformedTemplateNameException,
                                                            ParseException, IOException {
         return ApplicationImpl.cfg.getTemplate(name);
+    }
+    
+    public static void main(String[] args){
+        String output = null;
+        try {
+            processServerMethods("co.gerger.pagelet2");
+            output = 
+                callInterpreter("server", "doAutoSignIn", "UHLRK6EI53QTY63WMONQTILYXF99G820220617060004", "doctor");
+        } catch (PageletServerException e) {
+            e.printStackTrace();
+        }
+        log("OUTPUT="+output);
     }
 }
