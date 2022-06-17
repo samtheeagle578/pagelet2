@@ -115,7 +115,7 @@ public class ApplicationImpl {
                 
             }else{
                 packageName = System.getProperty("packageName");
-                log("Initializing controllers3="+packageName);
+                log("Initializing controllers3 package name found from System. packageName="+packageName);
             }
             log("Initializing controllers4="+packageName);
                 Reflections reflections = new Reflections(packageName);    

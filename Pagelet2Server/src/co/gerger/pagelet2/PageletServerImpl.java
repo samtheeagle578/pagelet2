@@ -52,6 +52,30 @@ public class PageletServerImpl {
         return accessToken;
     }
     
+    public static String getPackageName(HttpServletRequest request){
+        Cookie[] cookies = request.getCookies();
+        String packageName = null;
+        //log("GET AUTH TOKEN:about to loop cookies");
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                //log("GET AUTH TOKEN:cookie name="+cookie.getName());
+                //log("GET AUTH TOKEN:cookie value="+cookie.getValue());
+                if (cookie.getName().equals("pagelet2server")) {
+                    log("PAGELET2 PACKAGE COOKIE DETECTED");
+                    packageName = cookie.getValue();
+                }else{
+                    log("NOT PAGELET2 COOKIE:cookieName="+cookie.getName());
+                }
+            }
+        }
+        //in a promise chain i wasnt bale to send the cookie that is set in a previous promise.
+        //if (accessToken==null || "".equals(accessToken)){
+            //accessToken = request.getParameter("pagelet2accesstoken2");
+        //}
+        //log("GET AUTH TOKEN:accessToken="+accessToken);
+        return packageName;
+    }
+    
     public static String doRequest(HttpServletRequest request, HttpServletResponse response) throws PageletServerException {
         //this.session = request.getSession();
         log("doRequest:start");
@@ -61,6 +85,9 @@ public class PageletServerImpl {
         String text = "";
         //I can get rid of packe parameter if I send the package name or even better a hash pointing to the package name to the client with the methods
         String packageName = request.getParameter("package");
+        if (packageName==null || "".equals(packageName)){
+            packageName = getPackageName(request);
+        }
         ApplicationImpl.initializeFreeMarker(request.getServletContext().getRealPath("/"));
         ApplicationImpl.processServerMethods(packageName);
         log("doRequest:ACTION="+action);
