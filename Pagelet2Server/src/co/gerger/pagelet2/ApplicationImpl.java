@@ -47,8 +47,8 @@ import org.json.JSONObject;
 public class ApplicationImpl {
     private static ConcurrentHashMap<String,ClientController> controllers = new ConcurrentHashMap<>();
     //private static boolean clientControllersProcessed = false;
-    private static String authenticatorController;
-    private static String authenticatorMethod;
+    private static String authorizerController;
+    private static String authorizerMethod;
     private static String valueListProviderController;
     private static String valueListProviderMethod;
     private static Configuration cfg;
@@ -145,7 +145,7 @@ public class ApplicationImpl {
                         
                         boolean synchronous = false;
                         boolean publicMethod = false;
-                        boolean authorizer = false;
+                        boolean authenticator = false;
                         boolean needsCredentials = false;
                         boolean version = false;
                         String roles = null;
@@ -174,8 +174,8 @@ public class ApplicationImpl {
                                 needsCredentials = true;
                             }
                             
-                            if (method.isAnnotationPresent(Authorizer.class)){
-                                authorizer = true;
+                            if (method.isAnnotationPresent(Authenticator.class)){
+                                authenticator = true;
                             }
                             
                             if (method.isAnnotationPresent(Version.class)){
@@ -225,14 +225,14 @@ public class ApplicationImpl {
                                 parameterNames.add(parameterName);
                             }*/
                             
-                            cc.addMethod(method.getName(),synchronous, publicMethod, methodParameters,returnType.getName(),authorizer, needsCredentials,roles, version);
+                            cc.addMethod(method.getName(),synchronous, publicMethod, methodParameters,returnType.getName(),authenticator, needsCredentials,roles, version);
                             
                         }
                         ApplicationImpl.controllers.putIfAbsent(controllerName, cc);
                         log("ADDED CONTROLLER="+controllerName);
-                        if (method.isAnnotationPresent(Authenticator.class)){
-                            authenticatorController = controllerName;
-                            authenticatorMethod = method.getName();
+                        if (method.isAnnotationPresent(Authorizer.class)){
+                            authorizerController = controllerName;
+                            authorizerMethod = method.getName();
                         }
                         
                         if (method.isAnnotationPresent(Version.class)){
@@ -422,7 +422,7 @@ public class ApplicationImpl {
         boolean canExecute = false;
         ArrayList<MethodParameterImpl> parameters = null;
         log(">>>>>>>>>>>>>>>>>CALL INTERPRETER:START:controllerName="+controllerName+",methodName="+methodName);
-        if (controllerName.equals(ApplicationImpl.authenticatorController) && methodName.equals(ApplicationImpl.authenticatorMethod)){
+        if (controllerName.equals(ApplicationImpl.authorizerController) && methodName.equals(ApplicationImpl.authorizerMethod)){
             canExecute = true;
             parameters = new ArrayList<>();
             parameters.add(new MethodParameterImpl("accessToken","String"));
@@ -518,10 +518,10 @@ public class ApplicationImpl {
 
     private static String authenticate(String methodName, String accessToken) throws PageletServerException {
         String role = null;
-        if (ApplicationImpl.authenticatorMethod!=null && ApplicationImpl.authenticatorMethod.equals("")==false){
+        if (ApplicationImpl.authorizerMethod!=null && ApplicationImpl.authorizerMethod.equals("")==false){
             try {
                 if (accessToken!=null && "".equals(accessToken)==false){
-                    role = ApplicationImpl.callInterpreter(ApplicationImpl.authenticatorController, ApplicationImpl.authenticatorMethod, accessToken,"");
+                    role = ApplicationImpl.callInterpreter(ApplicationImpl.authorizerController, ApplicationImpl.authorizerMethod, accessToken,"");
                     
                 }
                 else{
