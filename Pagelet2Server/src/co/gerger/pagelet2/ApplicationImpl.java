@@ -287,7 +287,7 @@ public class ApplicationImpl {
     
     private static void log(String message){
         //System.out.println("ApplicationImpl: "+message);
-        Logger.getLogger("ApplicationImpl").log(Level.WARNING, message);  
+        //Logger.getLogger("ApplicationImpl").log(Level.WARNING, message);  
     }
 
     private static void setParam(int nthParam, String value, Interpreter interpreter) throws PageletServerException {

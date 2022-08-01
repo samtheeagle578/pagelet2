@@ -20,7 +20,7 @@ public class Pagelet2Servlet extends HttpServlet {
     
     private void doLog(String message){
         //System.out.println("HTTP Servlet: "+message);
-        Logger.getLogger("Pagelet2Servlet").log(Level.WARNING, message);  
+        //Logger.getLogger("Pagelet2Servlet").log(Level.WARNING, message);  
     }   
 
     public void init(ServletConfig config) throws ServletException {
