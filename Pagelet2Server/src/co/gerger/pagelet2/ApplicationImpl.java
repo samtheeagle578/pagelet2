@@ -73,7 +73,7 @@ public class ApplicationImpl {
         String xml="<response>";
         Collection<ClientController> ccs= controllers.values();
         for (ClientController c:ccs){
-            log("looping client controllers");
+            //log("looping client controllers");
             xml=xml+System.lineSeparator()+c.getText();    
         }
         xml = xml +System.lineSeparator()+"</response>";
@@ -100,33 +100,33 @@ public class ApplicationImpl {
     
     public static void processServerMethods(String packageName) throws PageletServerException {
         if (ApplicationImpl.areClientControllersProcessed()){
-            log("Controllers already initialized");
+            //log("Controllers already initialized");
         }
         else{
             //ApplicationImpl.clientControllersProcessed = true;
-            log("Initializing controllers1="+packageName);
+            //log("Initializing controllers1="+packageName);
             if (packageName!=null && packageName.equals("")==false){
-                log("Initializing controllers2="+packageName);
+                //log("Initializing controllers2="+packageName);
                 String systemPackageName = System.getProperty("packageName");
                 if (systemPackageName==null || systemPackageName.equals("")){
-                    log("Initializing controllers2.1="+packageName);
+                    //log("Initializing controllers2.1="+packageName);
                     System.setProperty("packageName", packageName);    
                 }
                 
             }else{
                 packageName = System.getProperty("packageName");
-                log("Initializing controllers3 package name found from System. packageName="+packageName);
+                //log("Initializing controllers3 package name found from System. packageName="+packageName);
             }
-            log("Initializing controllers4="+packageName);
+            //log("Initializing controllers4="+packageName);
                 Reflections reflections = new Reflections(packageName);    
             
             Set<Class<?>> controllers = 
                 reflections.getTypesAnnotatedWith(Controller.class);
-            log("SIZE ="+controllers.size());
+            //log("SIZE ="+controllers.size());
             for (Class<?> clazz : controllers) {
                 try {
                     Controller controller=clazz.getAnnotation(Controller.class); 
-                    log("CLAZZ NAME ="+clazz.getSimpleName());
+                    //log("CLAZZ NAME ="+clazz.getSimpleName());
                     String controllerName="";
                     if (controller.name().equals("default")){
                         controllerName=clazz.getSimpleName().toLowerCase();    
@@ -141,7 +141,7 @@ public class ApplicationImpl {
                     int length=methods.length;
                     for (int i = 0; i < length; i++){
                         Method method=methods[i]; 
-                        log("Method name = "+method.getName());
+                        //log("Method name = "+method.getName());
                         
                         boolean synchronous = false;
                         boolean publicMethod = false;
@@ -198,6 +198,8 @@ public class ApplicationImpl {
                                         parameterName = "defaultParamName"+ii;
                                         if ("org.json.JSONObject".equals(parameterTypes[ii].getName())){
                                             parameterType = "JSONObject";
+                                        }else if ("org.json.JSONArray".equals(parameterTypes[ii].getName())){
+                                            parameterType = "JSONArray";
                                         }else{
                                             parameterType = "String";
                                         }
@@ -206,6 +208,8 @@ public class ApplicationImpl {
                                         parameterName = parameter.getName();    
                                         if ("org.json.JSONObject".equals(parameterTypes[ii].getName())){
                                             parameterType = "JSONObject";
+                                        }else if ("org.json.JSONArray".equals(parameterTypes[ii].getName())){
+                                            parameterType = "JSONArray";                                            
                                         }else{
                                             parameterType = "String";
                                         }
@@ -229,7 +233,7 @@ public class ApplicationImpl {
                             
                         }
                         ApplicationImpl.controllers.putIfAbsent(controllerName, cc);
-                        log("ADDED CONTROLLER="+controllerName);
+                        //log("ADDED CONTROLLER="+controllerName);
                         if (method.isAnnotationPresent(Authorizer.class)){
                             authorizerController = controllerName;
                             authorizerMethod = method.getName();
@@ -241,11 +245,11 @@ public class ApplicationImpl {
                         }
                         
                         if (method.isAnnotationPresent(ValueListProvider.class)){
-                            log("ADDING VALUE LIST PROVIDER="+controllerName+"."+method.getName());
+                            //log("ADDING VALUE LIST PROVIDER="+controllerName+"."+method.getName());
                             valueListProviderController = controllerName;
                             valueListProviderMethod = method.getName();
                         }else{
-                            log("NOT A VALUE LIST PROVIDER="+controllerName+"."+method.getName());
+                            //log("NOT A VALUE LIST PROVIDER="+controllerName+"."+method.getName());
                         }
                         
                     }    
@@ -265,7 +269,7 @@ public class ApplicationImpl {
     }
 
     private static Interpreter getInterpreter(){
-        log("NEW INTERPRETER METHOD");
+        //log("NEW INTERPRETER METHOD");
         Interpreter interpreter =  new Interpreter();
         try {
             interpreter.eval("import org.json.JSONArray; JSONArray testArray=new JSONArray();");
@@ -286,16 +290,16 @@ public class ApplicationImpl {
     }*/
     
     private static void log(String message){
-        //System.out.println("ApplicationImpl: "+message);
+        System.out.println("ApplicationImpl: "+message);
         //Logger.getLogger("ApplicationImpl").log(Level.WARNING, message);  
     }
 
     private static void setParam(int nthParam, String value, Interpreter interpreter) throws PageletServerException {
         try {
-            log("Setting param"+nthParam+" to "+value);
+            //log("Setting param"+nthParam+" to "+value);
             interpreter.set("param"+nthParam, value);
         } catch (EvalError e) {
-            log("ScriptStacktrace="+e.getScriptStackTrace());
+            //log("ScriptStacktrace="+e.getScriptStackTrace());
             //e.printStackTrace();
             throw new PageletServerException(e.getMessage());
         }
@@ -303,10 +307,10 @@ public class ApplicationImpl {
     
     private static void setParam(int nthParam, Object value, Interpreter interpreter) throws PageletServerException {
         try {
-            log("Setting param"+nthParam+" to "+value);
+            //log("Setting param"+nthParam+" to "+value);
             interpreter.set("param"+nthParam, value);
         } catch (EvalError e) {
-            log("ScriptStacktrace2="+e.getScriptStackTrace());
+            //log("ScriptStacktrace2="+e.getScriptStackTrace());
             //e.printStackTrace();
             throw new PageletServerException(e.getMessage());
         }
@@ -329,6 +333,15 @@ public class ApplicationImpl {
                                 setParam(i,new JSONObject(params[i]),interpreter);
                                 textToRun = textToRun + "param"+i;    
                             }
+                        }else if ("JSONArray".equals(parameter.getType())){
+                            if (params[i].equals(Constant.NULL_VALUE)){
+                                setParam(i,new JSONArray(),interpreter);
+                                textToRun = textToRun + "param"+i;
+                            }
+                            else{
+                                setParam(i,new JSONArray(params[i]),interpreter);
+                                textToRun = textToRun + "param"+i;    
+                            }
                         }else{
                             if (params[i].equals(Constant.NULL_VALUE)){
                                 setParam(i,"",interpreter);
@@ -349,6 +362,16 @@ public class ApplicationImpl {
                             else{
                                 setParam(i,new JSONObject(params[i]),interpreter);
                                 textToRun = textToRun + ",param"+i;        
+                            }
+                        }else if ("JSONArray".equals(parameter.getType())){
+                            if (params[i].equals(Constant.NULL_VALUE) || "".equals(params[i]) ){
+                                setParam(i,new JSONArray(),interpreter);
+                                textToRun = textToRun + ",param"+i;
+                            }
+                            else{
+                                log("JSONArray value="+params[i]);
+                                setParam(i,new JSONArray(params[i]),interpreter);
+                                textToRun = textToRun + ",param"+i;    
                             }
                         }else{
                             if (params[i].equals(Constant.NULL_VALUE)){
@@ -421,22 +444,22 @@ public class ApplicationImpl {
         String returnType = controller.getMethodReturnType(methodName);
         boolean canExecute = false;
         ArrayList<MethodParameterImpl> parameters = null;
-        log(">>>>>>>>>>>>>>>>>CALL INTERPRETER:START:controllerName="+controllerName+",methodName="+methodName);
+        //log(">>>>>>>>>>>>>>>>>CALL INTERPRETER:START:controllerName="+controllerName+",methodName="+methodName);
         if (controllerName.equals(ApplicationImpl.authorizerController) && methodName.equals(ApplicationImpl.authorizerMethod)){
             canExecute = true;
             parameters = new ArrayList<>();
             parameters.add(new MethodParameterImpl("accessToken","String"));
-            log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing authenticate");
+            //log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing authenticate");
         }else if (controllerName.equals(ApplicationImpl.valueListProviderController) && methodName.equals(ApplicationImpl.valueListProviderMethod)){
             canExecute = true;
             parameters = new ArrayList<>();
             parameters.add(new MethodParameterImpl("valueListName","String"));
             parameters.add(new MethodParameterImpl("accessToken","String"));
-            log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing value list provider");
+            //log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing value list provider");
         }else{
             canExecute = controller.canExecute(methodName,role);
             parameters = controller.getMethodParameters(methodName);
-            log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing regular code");
+            //log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing regular code");
         }
         if (canExecute==false){
             throw new PageletServerException("User with role "+role+" cannot execute this method.");
@@ -452,7 +475,7 @@ public class ApplicationImpl {
             textToRun = addExceptionHandling(textToRun);
             output = "void";
             try {
-                log("textToRun="+textToRun);
+                //log("textToRun="+textToRun);
                 in.eval(textToRun);
                 String error = in.get("error").toString();
                 if (error.equals("NO_ERROR")==false){
@@ -460,7 +483,7 @@ public class ApplicationImpl {
                 }               
             } catch (EvalError f) {
                 //log("EvalError:textToRun="+textToRun);
-                log("ErrorText="+f.getMessage());
+                //log("ErrorText="+f.getMessage());
                 f.printStackTrace();
             }
         }
@@ -470,7 +493,7 @@ public class ApplicationImpl {
             textToRun = addExceptionHandling(textToRun);
             JSONArray jsonArray = null;
             try {
-                log("Running:json code="+textToRun);
+                //log("Running:json code="+textToRun);
                 in.eval(textToRun);
                 Object resultObject = in.get("result");
                 if (resultObject!=null){
@@ -490,12 +513,12 @@ public class ApplicationImpl {
             }            
         }
         else{
-            log("callInterpreter:2:inputs="+inputs);
+            //log("callInterpreter:2:inputs="+inputs);
             String textToRun=getBeginning()+"resultString = "+controller.getSimpleClassName()+"."+methodName+"(";
             textToRun = addParams2(textToRun,inputs,in,parameters);
             textToRun = addExceptionHandling(textToRun);
             try {
-                log("Running:code="+textToRun);
+                //log("Running:code="+textToRun);
                 in.eval(textToRun);
                 Object resultObject = in.get("resultString");
                 if (resultObject!=null){
@@ -544,26 +567,26 @@ public class ApplicationImpl {
             throw new PageletServerException("Cannot recognize "+controllerName+"."+methodName);
         }
         if (controller.isPublicMethod(methodName)==false){
-            log("EXECUTE:PUBLIC METHOD=FALSE:methodName="+methodName+",accessToken="+accessToken);
+            //log("EXECUTE:PUBLIC METHOD=FALSE:methodName="+methodName+",accessToken="+accessToken);
             role = authenticate(methodName,accessToken);    
         }
         
-        log("EXECUTE:accessToken="+accessToken);
-        log("EXECUTE:controllerName="+controllerName+", methodName="+methodName+", inputs="+inputs);
+        //log("EXECUTE:accessToken="+accessToken);
+        //log("EXECUTE:controllerName="+controllerName+", methodName="+methodName+", inputs="+inputs);
     
         if (controller.needsCredentials(methodName)){
-            log("EXECUTE:NEEDS CREDENTIALS=TRUE");
+            //log("EXECUTE:NEEDS CREDENTIALS=TRUE");
             if (inputs!=null && inputs.equals("")==false){
                 inputs = inputs + "~~~" + accessToken;    
             }
             else{
                 inputs = accessToken;
             }
-            log("EXECUTE:inputs="+accessToken);
+            //log("EXECUTE:inputs="+accessToken);
         }
     
         String output = ApplicationImpl.callInterpreter(controllerName, methodName, inputs, role);
-        log("EXECUTE:OUTPUT="+output);
+        //log("EXECUTE:OUTPUT="+output);
         
         JSONObject version = null;
         if (ApplicationImpl.versionMethod!=null && ApplicationImpl.versionMethod.equals("")==false){
@@ -597,7 +620,7 @@ public class ApplicationImpl {
     }
     
     public static String getValueList(String valueListName,String accessToken) throws PageletServerException {
-        log("GET VALUE LIST:valueListName="+valueListName);
+        //log("GET VALUE LIST:valueListName="+valueListName);
         String inputs = null;
         if (ApplicationImpl.valueListProviderController==null){
             return "{}";
@@ -618,9 +641,9 @@ public class ApplicationImpl {
                 inputs = Constant.NULL_VALUE + "~~~" + accessToken;    
             }
         }
-        log("GET VALUE LIST:inputs="+inputs);
+        //log("GET VALUE LIST:inputs="+inputs);
         String output = ApplicationImpl.callInterpreter(ApplicationImpl.valueListProviderController, ApplicationImpl.valueListProviderMethod, inputs,"");
-        log("execute:output="+output);
+        //log("execute:output="+output);
         
         return output;
     }
@@ -639,6 +662,6 @@ public class ApplicationImpl {
         } catch (PageletServerException e) {
             e.printStackTrace();
         }
-        log("OUTPUT="+output);
+        //log("OUTPUT="+output);
     }
 }
