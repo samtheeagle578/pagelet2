@@ -273,6 +273,7 @@ public class ApplicationImpl {
         Interpreter interpreter =  new Interpreter();
         try {
             interpreter.eval("import org.json.JSONArray; JSONArray testArray=new JSONArray();");
+            interpreter.eval("import org.json.JSONObject; JSONObject testObject=new JSONObject();");
             Collection<ClientController> clientControllers = ApplicationImpl.controllers.values();
             for(ClientController cc: clientControllers){
                 //interpreter.eval("import "+clazz.getName()+";"+" "+clazz.getSimpleName()+" "+controllerName+"=new "+clazz.getSimpleName()+"();");    
@@ -434,8 +435,12 @@ public class ApplicationImpl {
         return " resultString = \"\"; error=\"NO_ERROR\"; try { ";
     }
     
-    private static String getJSONBeginning(){
+    private static String getJSONArrayBeginning(){
         return " JSONArray result = null; error=\"NO_ERROR\"; try { ";
+    }
+    
+    private static String getJSONObjectBeginning(){
+        return " JSONObject result = null; error=\"NO_ERROR\"; try { ";
     }
     
     public static Object callInterpreter(String controllerName, String methodName, String inputs, String role) throws PageletServerException {
@@ -488,7 +493,7 @@ public class ApplicationImpl {
             }
         }
         else if (Constant.JSONArray.equals(returnType)){
-            String textToRun=getJSONBeginning()+"result = "+controller.getSimpleClassName()+"."+methodName+"(";
+            String textToRun=getJSONArrayBeginning()+"result = "+controller.getSimpleClassName()+"."+methodName+"(";
             textToRun = addParams2(textToRun,inputs,in,parameters);
             textToRun = addExceptionHandling(textToRun);
             JSONArray jsonArray = null;
@@ -513,7 +518,7 @@ public class ApplicationImpl {
             }            
         }
         else if (Constant.JSONObject.equals(returnType)){
-            String textToRun=getJSONBeginning()+"result = "+controller.getSimpleClassName()+"."+methodName+"(";
+            String textToRun=getJSONObjectBeginning()+"result = "+controller.getSimpleClassName()+"."+methodName+"(";
             textToRun = addParams2(textToRun,inputs,in,parameters);
             textToRun = addExceptionHandling(textToRun);
             try {
@@ -521,7 +526,7 @@ public class ApplicationImpl {
                 in.eval(textToRun);
                 Object resultObject = in.get("result");
                 if (resultObject!=null){
-                    output = (JSONArray)resultObject;
+                    output = (JSONObject)resultObject;
                     //output = jsonArray.toString();    
                 }
                 
