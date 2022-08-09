@@ -438,7 +438,7 @@ public class ApplicationImpl {
         return " JSONArray result = null; error=\"NO_ERROR\"; try { ";
     }
     
-    public static String callInterpreter(String controllerName, String methodName, String inputs, String role) throws PageletServerException {
+    public static Object callInterpreter(String controllerName, String methodName, String inputs, String role) throws PageletServerException {
         Interpreter in = ApplicationImpl.getInterpreter();
         ClientController controller = ApplicationImpl.controllers.get(controllerName);
         String returnType = controller.getMethodReturnType(methodName);
@@ -464,7 +464,7 @@ public class ApplicationImpl {
         if (canExecute==false){
             throw new PageletServerException("User with role "+role+" cannot execute this method.");
         }
-        String output = null;
+        Object output = null;
         //log("callInterpreter:methodName="+methodName);
         log("callInterpreter:returnType="+returnType);
         //log("callInterpreter:simpleClassName="+controller.getSimpleClassName());
@@ -497,8 +497,8 @@ public class ApplicationImpl {
                 in.eval(textToRun);
                 Object resultObject = in.get("result");
                 if (resultObject!=null){
-                    jsonArray = (JSONArray)resultObject;
-                    output = jsonArray.toString();    
+                    output = (JSONArray)resultObject;
+                    //output = jsonArray.toString();    
                 }
                 
                 //log("callInterpreter:RECEIVED result="+in.get("result").toString());
@@ -512,7 +512,30 @@ public class ApplicationImpl {
                 f.printStackTrace();             
             }            
         }
-        else{
+        else if (Constant.JSONObject.equals(returnType)){
+            String textToRun=getJSONBeginning()+"result = "+controller.getSimpleClassName()+"."+methodName+"(";
+            textToRun = addParams2(textToRun,inputs,in,parameters);
+            textToRun = addExceptionHandling(textToRun);
+            try {
+                //log("Running:json code="+textToRun);
+                in.eval(textToRun);
+                Object resultObject = in.get("result");
+                if (resultObject!=null){
+                    output = (JSONArray)resultObject;
+                    //output = jsonArray.toString();    
+                }
+                
+                //log("callInterpreter:RECEIVED result="+in.get("result").toString());
+                String error = in.get("error").toString();
+                if (error.equals("NO_ERROR")==false){
+                    throw new PageletServerException(error);    
+                }
+                
+            } catch (EvalError f) {
+                //log("EvalError:textToRun="+textToRun);
+                f.printStackTrace();             
+            }            
+        }else{
             //log("callInterpreter:2:inputs="+inputs);
             String textToRun=getBeginning()+"resultString = "+controller.getSimpleClassName()+"."+methodName+"(";
             textToRun = addParams2(textToRun,inputs,in,parameters);
@@ -544,7 +567,7 @@ public class ApplicationImpl {
         if (ApplicationImpl.authorizerMethod!=null && ApplicationImpl.authorizerMethod.equals("")==false){
             try {
                 if (accessToken!=null && "".equals(accessToken)==false){
-                    role = ApplicationImpl.callInterpreter(ApplicationImpl.authorizerController, ApplicationImpl.authorizerMethod, accessToken,"");
+                    role = (String)ApplicationImpl.callInterpreter(ApplicationImpl.authorizerController, ApplicationImpl.authorizerMethod, accessToken,"");
                     
                 }
                 else{
@@ -585,12 +608,12 @@ public class ApplicationImpl {
             //log("EXECUTE:inputs="+accessToken);
         }
     
-        String output = ApplicationImpl.callInterpreter(controllerName, methodName, inputs, role);
+        Object output = ApplicationImpl.callInterpreter(controllerName, methodName, inputs, role);
         //log("EXECUTE:OUTPUT="+output);
         
         JSONObject version = null;
         if (ApplicationImpl.versionMethod!=null && ApplicationImpl.versionMethod.equals("")==false){
-            String versionInfo = ApplicationImpl.callInterpreter(ApplicationImpl.versionController, ApplicationImpl.versionMethod, null,"");
+            String versionInfo = (String)ApplicationImpl.callInterpreter(ApplicationImpl.versionController, ApplicationImpl.versionMethod, null,"");
             try{
                 version = new JSONObject(versionInfo);    
             }catch(Exception e){
@@ -599,14 +622,13 @@ public class ApplicationImpl {
             
         }
         JSONObject result = new JSONObject();
-        if (output!=null && (output.startsWith("{") || output.startsWith("[")) ){
-            if (output.startsWith("{")){
-                JSONObject jsonOutput = new JSONObject(output);
-                result.put("output", jsonOutput);
-            }else if (output.startsWith("[")){
-                JSONArray jsonOutput = new JSONArray(output);
-                result.put("output", jsonOutput); 
-            }
+        
+        if (output!=null && output instanceof JSONObject){
+            JSONObject jsonOutput = (JSONObject)output;
+            result.put("output", jsonOutput);
+        }else if (output!=null && output instanceof JSONArray){
+            JSONArray jsonOutput = (JSONArray)output;
+            result.put("output", jsonOutput); 
         }else{
             result.put("output", output); 
         }
@@ -642,7 +664,7 @@ public class ApplicationImpl {
             }
         }
         //log("GET VALUE LIST:inputs="+inputs);
-        String output = ApplicationImpl.callInterpreter(ApplicationImpl.valueListProviderController, ApplicationImpl.valueListProviderMethod, inputs,"");
+        String output = (String)ApplicationImpl.callInterpreter(ApplicationImpl.valueListProviderController, ApplicationImpl.valueListProviderMethod, inputs,"");
         //log("execute:output="+output);
         
         return output;
@@ -657,7 +679,7 @@ public class ApplicationImpl {
         String output = null;
         try {
             processServerMethods("co.gerger.pagelet2");
-            output = 
+            output = (String)
                 callInterpreter("server", "doAutoSignIn", "UHLRK6EI53QTY63WMONQTILYXF99G820220617060004", "doctor");
         } catch (PageletServerException e) {
             e.printStackTrace();
