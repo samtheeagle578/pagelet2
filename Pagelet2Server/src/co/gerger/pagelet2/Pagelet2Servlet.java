@@ -20,7 +20,7 @@ public class Pagelet2Servlet extends HttpServlet {
     private static final String DOWNLOAD_CONTENT_TYPE = "charset=UTF-8";
     
     private void doLog(String message){
-        //System.out.println("HTTP Servlet: "+message);
+        System.out.println("HTTP Servlet: "+message);
         //Logger.getLogger("Pagelet2Servlet").log(Level.WARNING, message);  
     }   
 
@@ -37,13 +37,13 @@ public class Pagelet2Servlet extends HttpServlet {
         //counter = counter + 1;
         PrintWriter out = null;
         try{
-            out = response.getWriter();
             String event=request.getParameter("action");
             doLog("ACTION="+event);
             String result= "";
             doLog("step 1");
             if ("download".equals(event)){
                 try{
+                    doLog("SEND DATA="+event);
                     PageletServerImpl.sendData(request,response);    
                 }catch(Exception e){
                     e.printStackTrace();
@@ -51,6 +51,7 @@ public class Pagelet2Servlet extends HttpServlet {
                 
             }else{
                 try{
+                    out = response.getWriter();
                     response.setContentType(CONTENT_TYPE);
                     result = PageletServerImpl.doRequest(request,response);
                     out.print(result);                    
@@ -62,7 +63,10 @@ public class Pagelet2Servlet extends HttpServlet {
             }
             
         }finally{
-            out.close();
+            if (out!=null){
+                out.close();    
+            }
+            
         }
         
 

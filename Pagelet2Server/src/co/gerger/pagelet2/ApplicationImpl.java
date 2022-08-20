@@ -410,14 +410,14 @@ public class ApplicationImpl {
         setParam(0,contentType,interpreter);
         textToRun = textToRun + "param0";  
         setParam(1,contentDisposition,interpreter);
-        textToRun = textToRun + "param1";  
+        textToRun = textToRun + ",param1";  
         setParam(2,filePath,interpreter);
-        textToRun = textToRun + "param2";
+        textToRun = textToRun + ",param2";
         setParam(3,response,interpreter);
-        textToRun = textToRun + "param3";
+        textToRun = textToRun + ",param3";
         if (accessToken!=null){
             setParam(4,accessToken,interpreter);
-            textToRun = textToRun + "param3";      
+            textToRun = textToRun + ",param4";      
         }        
         textToRun = textToRun + ");";
         return textToRun;
@@ -615,6 +615,7 @@ public class ApplicationImpl {
         String textToRun=getBeginning()+controller.getSimpleClassName()+"."+methodName+"(";
         textToRun = addSendDataParams(textToRun,contentType,contentDisposition,filePath,accessToken,response,in,parameters);
         textToRun = addExceptionHandling(textToRun);
+        log("sendDataInsernal:textToRun="+textToRun);
         String output = "void";
         try {
             //log("textToRun="+textToRun);
@@ -711,6 +712,7 @@ public class ApplicationImpl {
     }
     
     public static void sendData(String contentType, String contentDisposition, String filePath, String accessToken, HttpServletResponse response, HttpServletRequest request) throws PageletServerException{
+        log("sendData:downloadController="+downloadController);
         ClientController controller = controllers.get(downloadController);
         String role = null;
         if (controller==null){

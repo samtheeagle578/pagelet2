@@ -136,11 +136,12 @@ public class PageletServerImpl {
         String contentType = request.getParameter("contentType");
         String contentDisposition = request.getParameter("contentDisposition");
         String filePath = request.getParameter("filePath");
+        log("sendData:"+contentType+","+contentDisposition+","+filePath+","+accessToken);
         ApplicationImpl.sendData(contentType,contentDisposition,filePath,accessToken,response,request);
     }
     
     private static void log(String message){
-        //System.out.println("PageletServerImpl: "+message);
+        System.out.println("PageletServerImpl: "+message);
         //Logger.getLogger("PageletServerImpl").log(Level.WARNING, message);  
     }
 }
