@@ -17,6 +17,7 @@ import org.xml.sax.SAXException;
 @WebServlet(name = "Pagelet2Servlet", urlPatterns = { "/pagelet2servlet" })
 public class Pagelet2Servlet extends HttpServlet {
     private static final String CONTENT_TYPE = "text/html; charset=utf-8";
+    private static final String DOWNLOAD_CONTENT_TYPE = "charset=UTF-8";
     
     private void doLog(String message){
         //System.out.println("HTTP Servlet: "+message);
@@ -34,23 +35,36 @@ public class Pagelet2Servlet extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         //doLog("gitblit="+);
         //counter = counter + 1;
-        PrintWriter out = response.getWriter();
-        String event=request.getParameter("action");
-        doLog("ACTION="+event);
-        String result= "";
-        doLog("step 1");
-        try {
-            response.setContentType(CONTENT_TYPE);
-            result = PageletServerImpl.doRequest(request,response);
-            out.print(result);                    
-        } catch (PageletServerException e) {
-            e.printStackTrace();
-            out.print("ServerException:");
-            out.print(e.getMessage());
+        PrintWriter out = null;
+        try{
+            out = response.getWriter();
+            String event=request.getParameter("action");
+            doLog("ACTION="+event);
+            String result= "";
+            doLog("step 1");
+            if ("download".equals(event)){
+                try{
+                    PageletServerImpl.sendData(request,response);    
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+                
+            }else{
+                try{
+                    response.setContentType(CONTENT_TYPE);
+                    result = PageletServerImpl.doRequest(request,response);
+                    out.print(result);                    
+                }catch (PageletServerException e) {
+                    e.printStackTrace();
+                    out.print("ServerException:");
+                    out.print(e.getMessage());
+                }   
+            }
+            
+        }finally{
+            out.close();
         }
-        //doLog("step 4");
-        out.close();
-        //doLog("step 5");
+        
 
     }
 }

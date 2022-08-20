@@ -54,7 +54,8 @@ public class ApplicationImpl {
     private static Configuration cfg;
     private static String versionController;
     private static String versionMethod;
-    
+    private static String downloadController;
+    private static String downloadMethod;
     public ApplicationImpl(String packageName) {
         super();
         //this.generateXMLForServerMethods(packageName);
@@ -148,6 +149,7 @@ public class ApplicationImpl {
                         boolean authenticator = false;
                         boolean needsCredentials = false;
                         boolean version = false;
+                        boolean downloader = false;
                         String roles = null;
                         Callable callable = null;
                         if (method.isAnnotationPresent(Callable.class)){
@@ -180,6 +182,10 @@ public class ApplicationImpl {
                             
                             if (method.isAnnotationPresent(Version.class)){
                                 version = true;
+                            }
+                            
+                            if (method.isAnnotationPresent(Download.class)){
+                                downloader = true;
                             }
                             
                             Parameter[] parameters = method.getParameters();
@@ -229,7 +235,7 @@ public class ApplicationImpl {
                                 parameterNames.add(parameterName);
                             }*/
                             
-                            cc.addMethod(method.getName(),synchronous, publicMethod, methodParameters,returnType.getName(),authenticator, needsCredentials,roles, version);
+                            cc.addMethod(method.getName(),synchronous, publicMethod, methodParameters,returnType.getName(),authenticator, needsCredentials,roles, version, downloader);
                             
                         }
                         ApplicationImpl.controllers.putIfAbsent(controllerName, cc);
@@ -237,6 +243,11 @@ public class ApplicationImpl {
                         if (method.isAnnotationPresent(Authorizer.class)){
                             authorizerController = controllerName;
                             authorizerMethod = method.getName();
+                        }
+                        
+                        if (method.isAnnotationPresent(Download.class)){
+                            downloadController = controllerName;
+                            downloadMethod = method.getName();
                         }
                         
                         if (method.isAnnotationPresent(Version.class)){
@@ -393,6 +404,25 @@ public class ApplicationImpl {
         textToRun = textToRun + ");";
         return textToRun;
     }
+    
+    private static String addSendDataParams(String textToRun, String contentType, String contentDisposition, String filePath, String accessToken, HttpServletResponse response, Interpreter interpreter,ArrayList<MethodParameterImpl> parameters) throws PageletServerException {
+        MethodParameterImpl parameter = null;
+        setParam(0,contentType,interpreter);
+        textToRun = textToRun + "param0";  
+        setParam(1,contentDisposition,interpreter);
+        textToRun = textToRun + "param1";  
+        setParam(2,filePath,interpreter);
+        textToRun = textToRun + "param2";
+        setParam(3,response,interpreter);
+        textToRun = textToRun + "param3";
+        if (accessToken!=null){
+            setParam(4,accessToken,interpreter);
+            textToRun = textToRun + "param3";      
+        }        
+        textToRun = textToRun + ");";
+        return textToRun;
+    }
+    
     //right before attempting surgery
     private String addParams(String textToRun, String inputs){
         if (inputs!=null && inputs.equals("")==false){
@@ -567,6 +597,40 @@ public class ApplicationImpl {
         return output;
     }   
 
+    public static void sendDataInternal(String controllerName, String methodName, String contentType, String contentDisposition, String filePath, String accessToken, String role, HttpServletResponse response) throws PageletServerException {
+        Interpreter in = ApplicationImpl.getInterpreter();
+        ClientController controller = ApplicationImpl.controllers.get(controllerName);
+        
+        boolean canExecute = false;
+        ArrayList<MethodParameterImpl> parameters = null;
+      
+        canExecute = controller.canExecute(methodName,role);
+        parameters = controller.getMethodParameters(methodName);
+
+        
+        if (canExecute==false){
+            throw new PageletServerException("User with role "+role+" cannot execute this method.");
+        }
+        
+        String textToRun=getBeginning()+controller.getSimpleClassName()+"."+methodName+"(";
+        textToRun = addSendDataParams(textToRun,contentType,contentDisposition,filePath,accessToken,response,in,parameters);
+        textToRun = addExceptionHandling(textToRun);
+        String output = "void";
+        try {
+            //log("textToRun="+textToRun);
+            in.eval(textToRun);
+            String error = in.get("error").toString();
+            if (error.equals("NO_ERROR")==false){
+                throw new PageletServerException(error);    
+            }               
+        } catch (EvalError f) {
+            //log("EvalError:textToRun="+textToRun);
+            //log("ErrorText="+f.getMessage());
+            f.printStackTrace();
+            throw new PageletServerException("Could not evaluate the method.");    
+        }
+    }
+
     private static String authenticate(String methodName, String accessToken) throws PageletServerException {
         String role = null;
         if (ApplicationImpl.authorizerMethod!=null && ApplicationImpl.authorizerMethod.equals("")==false){
@@ -644,6 +708,24 @@ public class ApplicationImpl {
         return result.toString();
         
         
+    }
+    
+    public static void sendData(String contentType, String contentDisposition, String filePath, String accessToken, HttpServletResponse response, HttpServletRequest request) throws PageletServerException{
+        ClientController controller = controllers.get(downloadController);
+        String role = null;
+        if (controller==null){
+            throw new PageletServerException("Cannot recognize controller "+downloadController+"."+downloadMethod);
+        }
+        
+        if (controller.isPublicMethod(downloadMethod)==false){
+            role = authenticate(downloadMethod,accessToken);    
+        }
+        
+        String accessToken2 = null;
+        if (controller.needsCredentials(downloadMethod)){
+            accessToken2 = accessToken;
+        }            
+        ApplicationImpl.sendDataInternal(downloadController, downloadMethod, contentType, contentDisposition, filePath, accessToken2, role, response);
     }
     
     public static String getValueList(String valueListName,String accessToken) throws PageletServerException {

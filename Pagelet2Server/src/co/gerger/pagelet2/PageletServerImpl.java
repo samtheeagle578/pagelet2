@@ -10,6 +10,10 @@ import freemarker.template.TemplateNotFoundException;
 
 import java.io.IOException;
 
+import java.io.InputStream;
+
+import java.io.OutputStream;
+
 import java.util.HashMap;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -125,6 +129,14 @@ public class PageletServerImpl {
             throw new PageletServerException(e.getMessage());
         }
         return temp;
+    }
+    
+    public static void sendData(HttpServletRequest request, HttpServletResponse response) throws PageletServerException {
+        String accessToken = getAuthorizationToken(request);
+        String contentType = request.getParameter("contentType");
+        String contentDisposition = request.getParameter("contentDisposition");
+        String filePath = request.getParameter("filePath");
+        ApplicationImpl.sendData(contentType,contentDisposition,filePath,accessToken,response,request);
     }
     
     private static void log(String message){
