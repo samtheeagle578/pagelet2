@@ -662,6 +662,8 @@ public class ApplicationImpl {
         if (controller.isPublicMethod(methodName)==false){
             //log("EXECUTE:PUBLIC METHOD=FALSE:methodName="+methodName+",accessToken="+accessToken);
             role = authenticate(methodName,accessToken);    
+        }else{
+            role = "deafult";
         }
         
         //log("EXECUTE:accessToken="+accessToken);
@@ -677,7 +679,7 @@ public class ApplicationImpl {
             }
             //log("EXECUTE:inputs="+accessToken);
         }
-    
+        log("EXECUTING:controllerName="+controllerName+",methodName="+methodName+",inputs="+inputs+",role="+role);
         Object output = ApplicationImpl.callInterpreter(controllerName, methodName, inputs, role);
         //log("EXECUTE:OUTPUT="+output);
         
