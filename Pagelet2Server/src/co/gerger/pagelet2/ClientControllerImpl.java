@@ -184,6 +184,9 @@ public class ClientControllerImpl implements ClientController {
         ArrayList<String> roles = this.callableMethodRoles.get(methodName);
         for (int i=0; i < userRoles.length(); i++){
             String roleName = userRoles.getString(i);
+            if ("admin".equals(roleName)){
+                return true;
+            }
             if (roles.size()==1){
                 String role = roles.get(0);
                 if (role.equals("default")){
