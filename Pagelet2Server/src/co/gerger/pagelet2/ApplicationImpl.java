@@ -492,12 +492,13 @@ public class ApplicationImpl {
             parameters.add(new MethodParameterImpl("accessToken","String"));
             //log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing value list provider");
         }else{
+            log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing regular code:methodName="+methodName+",role="+role);
             canExecute = controller.canExecute(methodName,role);
             parameters = controller.getMethodParameters(methodName);
             //log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing regular code");
         }
         if (canExecute==false){
-            throw new PageletServerException("User with role "+role+" cannot execute this method.");
+            throw new PageletServerException("This user does not have permission to execute this method.");
         }
         Object output = null;
         //log("callInterpreter:methodName="+methodName);

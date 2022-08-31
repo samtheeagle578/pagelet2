@@ -144,7 +144,7 @@ public class ClientControllerImpl implements ClientController {
     }
     
     private void log(String message){
-        //System.out.println("ClientControllerImpl: "+message);    
+        System.out.println("ClientControllerImpl: "+message);    
     }
 
     @Override
@@ -171,8 +171,12 @@ public class ClientControllerImpl implements ClientController {
     public boolean canExecute(String methodName, String userRole) {
         JSONArray userRoles = null;
         try{
+            //log("userRole="+userRole);
             userRoles = new JSONArray(userRole);
+            //log("valid JSONArray");
         }catch(Exception e){
+            //log("invalid JSONArray");
+            e.printStackTrace();
             userRoles = new JSONArray();
             userRoles.put(userRole);
         }
@@ -188,7 +192,7 @@ public class ClientControllerImpl implements ClientController {
                 if (role.equals(roleName)){
                     return true;
                 }else{
-                    return false;
+                    //return false;
                 }
             }else{
                 for(String role: roles){
@@ -198,9 +202,6 @@ public class ClientControllerImpl implements ClientController {
                 }
             }    
         }
-        
-        
-        
         return false;
     }
 }
