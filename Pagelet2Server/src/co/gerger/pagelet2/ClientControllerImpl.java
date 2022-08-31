@@ -179,7 +179,7 @@ public class ClientControllerImpl implements ClientController {
             }
         }else{
             for(String role: roles){
-                if (role.equals("roleName")){
+                if (role.equals(roleName)){
                     return true;
                 }
             }

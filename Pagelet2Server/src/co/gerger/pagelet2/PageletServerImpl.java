@@ -141,7 +141,7 @@ public class PageletServerImpl {
     }
     
     private static void log(String message){
-        System.out.println("PageletServerImpl: "+message);
+        //System.out.println("PageletServerImpl: "+message);
         //Logger.getLogger("PageletServerImpl").log(Level.WARNING, message);  
     }
 }
