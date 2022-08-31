@@ -4,6 +4,9 @@ import java.util.ArrayList;
 
 import java.util.HashMap;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -165,25 +168,39 @@ public class ClientControllerImpl implements ClientController {
     }
 
     @Override
-    public boolean canExecute(String methodName, String roleName) {
+    public boolean canExecute(String methodName, String userRole) {
+        JSONArray userRoles = null;
+        try{
+            userRoles = new JSONArray(userRole);
+        }catch(Exception e){
+            userRoles = new JSONArray();
+            userRoles.put(userRole);
+        }
+        
         ArrayList<String> roles = this.callableMethodRoles.get(methodName);
-        if (roles.size()==1){
-            String role = roles.get(0);
-            if (role.equals("default")){
-                return true;
-            }
-            if (role.equals(roleName)){
-                return true;
-            }else{
-                return false;
-            }
-        }else{
-            for(String role: roles){
-                if (role.equals(roleName)){
+        for (int i=0; i < userRoles.length(); i++){
+            String roleName = userRoles.getString(i);
+            if (roles.size()==1){
+                String role = roles.get(0);
+                if (role.equals("default")){
                     return true;
                 }
-            }
+                if (role.equals(roleName)){
+                    return true;
+                }else{
+                    return false;
+                }
+            }else{
+                for(String role: roles){
+                    if (role.equals(roleName)){
+                        return true;
+                    }
+                }
+            }    
         }
+        
+        
+        
         return false;
     }
 }
