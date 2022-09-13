@@ -498,7 +498,7 @@ public class ApplicationImpl {
             //log(">>>>>>>>>>>>>>>>>CALL INTERPRETER: executing regular code");
         }
         if (canExecute==false){
-            throw new PageletServerException("This user does not have permission to execute this method.");
+            throw new PageletServerException("You do not have permission to execute this.");
         }
         Object output = null;
         //log("callInterpreter:methodName="+methodName);
