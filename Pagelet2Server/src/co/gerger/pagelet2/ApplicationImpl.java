@@ -664,7 +664,7 @@ public class ApplicationImpl {
             //log("EXECUTE:PUBLIC METHOD=FALSE:methodName="+methodName+",accessToken="+accessToken);
             role = authenticate(methodName,accessToken);    
         }else{
-            role = "deafult";
+            role = "default";
         }
         
         //log("EXECUTE:accessToken="+accessToken);

@@ -176,7 +176,7 @@ public class ClientControllerImpl implements ClientController {
             //log("valid JSONArray");
         }catch(Exception e){
             //log("invalid JSONArray");
-            e.printStackTrace();
+            //e.printStackTrace();
             userRoles = new JSONArray();
             userRoles.put(userRole);
         }
