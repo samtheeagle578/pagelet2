@@ -122,10 +122,10 @@ public class PageletServerImpl {
         try{
             temp = ApplicationImpl.getTemplate(name);    
         } catch (MalformedTemplateNameException | ParseException | TemplateNotFoundException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             throw new PageletServerException(e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             throw new PageletServerException(e.getMessage());
         }
         return temp;

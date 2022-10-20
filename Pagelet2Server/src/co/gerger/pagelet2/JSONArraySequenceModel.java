@@ -25,13 +25,13 @@ public class JSONArraySequenceModel extends WrappingTemplateModel implements Tem
             model = wrap(jsonArray.get(index));
         } catch (JSONException e) {
             log("get:error");
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         return model;
     }
     
     private static void log(String message){
-        System.out.println("SequenceModel:"+message);
+        //System.out.println("SequenceModel:"+message);
     }
 
     @Override

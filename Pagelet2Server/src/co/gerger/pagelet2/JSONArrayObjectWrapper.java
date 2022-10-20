@@ -15,16 +15,16 @@ public class JSONArrayObjectWrapper extends DefaultObjectWrapper {
     
     @Override
     public TemplateModel handleUnknownType (Object obj) throws TemplateModelException {
-        log("handleUnknownType:class="+obj.getClass().getName());
+        //log("handleUnknownType:class="+obj.getClass().getName());
         if (obj instanceof JSONArray) {
-            log("handleUnknownType:it's a JSONArray");
+            //log("handleUnknownType:it's a JSONArray");
             return new JSONArraySequenceModel((JSONArray) obj);
         }
-        log("handleUnknownType:returning");
+        //log("handleUnknownType:returning");
         return super.handleUnknownType(obj);
     }
     
     private static void log(String message){
-        System.out.println("ObjectWrapper:"+message);
+        //System.out.println("ObjectWrapper:"+message);
     }
 }

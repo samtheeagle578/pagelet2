@@ -144,7 +144,7 @@ public class ClientControllerImpl implements ClientController {
     }
     
     private void log(String message){
-        System.out.println("ClientControllerImpl: "+message);    
+        //System.out.println("ClientControllerImpl: "+message);    
     }
 
     @Override

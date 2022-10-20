@@ -88,7 +88,7 @@ public class ApplicationImpl {
             try {
                 cfg.setDirectoryForTemplateLoading(new File(path));
             } catch (IOException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
             }
             cfg.setDefaultEncoding("UTF-8");
             cfg.setTemplateExceptionHandler(TemplateExceptionHandler.HTML_DEBUG_HANDLER);
@@ -266,8 +266,8 @@ public class ApplicationImpl {
                     }    
                 } catch (Exception e) {
                     //log("Error with bean initialization");
-                    e.printStackTrace();
-                    }
+                    //e.printStackTrace();
+                }
 
 
             }
@@ -292,7 +292,7 @@ public class ApplicationImpl {
             }
             
         } catch (EvalError e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         return interpreter;
     }
@@ -302,7 +302,7 @@ public class ApplicationImpl {
     }*/
     
     private static void log(String message){
-        System.out.println("ApplicationImpl: "+message);
+        //System.out.println("ApplicationImpl: "+message);
         //Logger.getLogger("ApplicationImpl").log(Level.WARNING, message);  
     }
 
@@ -520,7 +520,7 @@ public class ApplicationImpl {
             } catch (EvalError f) {
                 //log("EvalError:textToRun="+textToRun);
                 //log("ErrorText="+f.getMessage());
-                f.printStackTrace();
+                //f.printStackTrace();
             }
         }
         else if (Constant.JSONArray.equals(returnType)){
@@ -545,7 +545,7 @@ public class ApplicationImpl {
                 
             } catch (EvalError f) {
                 //log("EvalError:textToRun="+textToRun);
-                f.printStackTrace();             
+                //f.printStackTrace();             
             }            
         }
         else if (Constant.JSONObject.equals(returnType)){
@@ -569,7 +569,7 @@ public class ApplicationImpl {
                 
             } catch (EvalError f) {
                 //log("EvalError:textToRun="+textToRun);
-                f.printStackTrace();             
+                //f.printStackTrace();             
             }            
         }else{
             //log("callInterpreter:2:inputs="+inputs);
@@ -592,7 +592,7 @@ public class ApplicationImpl {
                 
             } catch (EvalError f) {
                 //log("EvalError:textToRun="+textToRun);
-                f.printStackTrace();             
+                //f.printStackTrace();             
             }
         }
         return output;
@@ -628,7 +628,7 @@ public class ApplicationImpl {
         } catch (EvalError f) {
             //log("EvalError:textToRun="+textToRun);
             //log("ErrorText="+f.getMessage());
-            f.printStackTrace();
+            //f.printStackTrace();
             throw new PageletServerException("Could not evaluate the method.");    
         }
     }
@@ -645,7 +645,7 @@ public class ApplicationImpl {
                     throw new Exception();
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
                 throw new PageletServerException("This session is not authorized to execute this function:"+methodName);
             }    
         }
@@ -690,7 +690,7 @@ public class ApplicationImpl {
             try{
                 version = new JSONObject(versionInfo);    
             }catch(Exception e){
-                e.printStackTrace();
+                //e.printStackTrace();
             }
             
         }
@@ -768,14 +768,14 @@ public class ApplicationImpl {
     }
     
     public static void main(String[] args){
-        String output = null;
+        /*String output = null;
         try {
             processServerMethods("co.gerger.pagelet2");
             output = (String)
                 callInterpreter("server", "doAutoSignIn", "UHLRK6EI53QTY63WMONQTILYXF99G820220617060004", "doctor");
         } catch (PageletServerException e) {
-            e.printStackTrace();
-        }
+            //e.printStackTrace();
+        }*/
         //log("OUTPUT="+output);
     }
 }

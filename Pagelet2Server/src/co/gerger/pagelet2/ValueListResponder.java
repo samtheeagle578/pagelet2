@@ -43,6 +43,6 @@ public class ValueListResponder extends HttpServlet {
     
     private void doLog(String message){
         //System.out.println("HTTP Servlet: "+message);
-        Logger.getLogger("ValueListProvider").log(Level.WARNING, message);  
+        //Logger.getLogger("ValueListProvider").log(Level.WARNING, message);  
     }   
 }

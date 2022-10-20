@@ -54,7 +54,7 @@ public class Util {
         try {
             builder = factory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         return builder;
     }
@@ -162,7 +162,7 @@ public class Util {
         } catch (TransformerConfigurationException e) {
             throw new PageletServerException(e.getMessage());
         } catch (TransformerException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             throw new PageletServerException(e.getMessage());
         }
 
@@ -239,14 +239,14 @@ public class Util {
         try {
             transformer = transFactory.newTransformer();
         } catch (TransformerConfigurationException f) {
-            f.printStackTrace();
+            //f.printStackTrace();
         }
         StringWriter buffer = new StringWriter();
         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
         try {
             transformer.transform(new DOMSource(e), new StreamResult(buffer));
         } catch (TransformerException f) {
-            f.printStackTrace();
+            //f.printStackTrace();
         }
         String str = buffer.toString();
         return str;
